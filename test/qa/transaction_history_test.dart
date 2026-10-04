@@ -16,6 +16,8 @@ void main() {
 
   testWidgets('tombol ">" di Beranda membuka Riwayat Transaksi', (tester) async {
     await pumpScreen(tester, const QaScreen('beranda', route: Routes.MAIN_NAV));
+    // Bagian "Transaksi hari ini" ada di bawah kartu ringkasan.
+    await tester.scrollUntilVisible(find.byTooltip('Lihat semua riwayat'), 300, scrollable: find.byType(Scrollable).first);
     await tester.tap(find.byTooltip('Lihat semua riwayat'));
     await settle(tester);
     expect(find.text('Riwayat Transaksi'), findsOneWidget);

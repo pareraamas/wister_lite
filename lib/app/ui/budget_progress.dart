@@ -32,6 +32,7 @@ class BudgetProgress extends StatelessWidget {
     this.used,
     this.budget,
     this.showDetails = true,
+    this.showRemaining = true,
   });
 
   /// Versi praktis: rasio dihitung dari [used] dan [budget].
@@ -42,6 +43,7 @@ class BudgetProgress extends StatelessWidget {
     this.pace,
     this.label,
     this.showDetails = true,
+    this.showRemaining = true,
   }) : ratio = ratioOf(used, budget);
 
   /// Terpakai / budget. Budget 0 dengan pemakaian = `double.infinity` (lewat).
@@ -60,6 +62,10 @@ class BudgetProgress extends StatelessWidget {
 
   /// Tampilkan baris detail/status di bawah bar.
   final bool showDetails;
+
+  /// Tampilkan sisa/lewat di baris detail. Matikan bila sisa sudah tampil
+  /// sebagai angka utama di dekatnya agar tidak dobel.
+  final bool showRemaining;
 
   /// Kunci bagian bar yang terisi (untuk test).
   static const fillKey = ValueKey('budget-progress-fill');
@@ -95,16 +101,8 @@ class BudgetProgress extends StatelessWidget {
 
     final (statusText, statusColor, statusIcon) = switch (status) {
       BudgetStatus.safe => (hasAmounts ? 'Sisa ${AppFormat.rupiah(remaining)}' : '$percent% terpakai', c.inkMuted, null),
-      BudgetStatus.warning => (
-        hasAmounts ? 'Sisa ${AppFormat.rupiah(remaining)}' : 'Hampir habis',
-        c.warning,
-        AppIconsFill.warning,
-      ),
-      BudgetStatus.over => (
-        hasAmounts ? 'Lewat ${AppFormat.rupiah(remaining)}' : 'Lewat anggaran',
-        c.danger,
-        AppIconsFill.warningOctagon,
-      ),
+      BudgetStatus.warning => (hasAmounts ? 'Sisa ${AppFormat.rupiah(remaining)}' : 'Hampir habis', c.warning, AppIconsFill.warning),
+      BudgetStatus.over => (hasAmounts ? 'Lewat ${AppFormat.rupiah(remaining)}' : 'Lewat anggaran', c.danger, AppIconsFill.warningOctagon),
     };
 
     final statusSpoken = switch (status) {
@@ -123,11 +121,10 @@ class BudgetProgress extends StatelessWidget {
     final statusRow = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (statusIcon != null) ...[
-          Icon(statusIcon, size: 16, color: statusColor),
-          const SizedBox(width: AppSpacing.s4),
-        ],
-        Flexible(child: Text(statusText, style: AppTypography.amountSmall.copyWith(color: statusColor))),
+        if (statusIcon != null) ...[Icon(statusIcon, size: 16, color: statusColor), const SizedBox(width: AppSpacing.s4)],
+        Flexible(
+          child: Text(statusText, style: AppTypography.amountSmall.copyWith(color: statusColor)),
+        ),
       ],
     );
 
@@ -142,13 +139,15 @@ class BudgetProgress extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(label!, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.titleSmall?.copyWith(color: c.ink)),
+                  child: Text(
+                    label!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.titleSmall?.copyWith(color: c.ink),
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.s8),
-                Text(
-                  '$percent%',
-                  style: AppTypography.amountSmall.copyWith(color: status == BudgetStatus.safe ? c.inkMuted : statusColor),
-                ),
+                Text('$percent%', style: AppTypography.amountSmall.copyWith(color: status == BudgetStatus.safe ? c.inkMuted : statusColor)),
               ],
             ),
             const SizedBox(height: AppSpacing.s8),
@@ -156,7 +155,12 @@ class BudgetProgress extends StatelessWidget {
           _Bar(ratio: ratio, pace: pace, color: barColor, tokens: tok),
           if (showDetails) ...[
             const SizedBox(height: AppSpacing.s8),
-            if (hasAmounts)
+            if (hasAmounts && !showRemaining)
+              Text(
+                'Terpakai ${AppFormat.rupiah(used!)} dari ${AppFormat.rupiah(budget!)}',
+                style: AppTypography.amountSmall.copyWith(color: c.inkMuted, fontWeight: FontWeight.w500),
+              )
+            else if (hasAmounts)
               Wrap(
                 alignment: WrapAlignment.spaceBetween,
                 crossAxisAlignment: WrapCrossAlignment.center,

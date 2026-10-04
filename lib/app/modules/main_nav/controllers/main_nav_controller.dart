@@ -32,7 +32,8 @@ class MainNavController extends GetxController {
     if (index == selectedIndex.value) return;
     selectedIndex.value = index;
     fabVisible.value = true;
-    // Tab Anggaran & Statistik dulu hanya load saat onInit, jadi angkanya basi.
+    // Tab hanya load saat onInit, jadi angkanya basi (mis. budget diubah di tab Anggaran).
+    if (index == 0 && Get.isRegistered<HomeController>()) Get.find<HomeController>().onRefresh();
     if (index == 1 && Get.isRegistered<BudgetController>()) Get.find<BudgetController>().loadData();
     if (index == 2 && Get.isRegistered<StatistikController>()) Get.find<StatistikController>().loadData();
   }

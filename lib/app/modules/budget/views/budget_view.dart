@@ -90,14 +90,21 @@ class BudgetView extends GetView<BudgetController> {
             else ...[
               _RemainingCard(controller: controller),
               const SizedBox(height: AppSpacing.section),
-              _SectionTitle('Anggaran kategori'),
-              for (final c in withBudget) ...[
-                _BudgetTile(category: c, controller: controller, onTap: () => _openSheet(context, c)),
-                const SizedBox(height: AppSpacing.stack),
-              ],
+              _SectionTitle('Kategori'),
+              Card(
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    for (final (i, c) in withBudget.indexed) ...[
+                      if (i > 0) const Divider(indent: AppSpacing.card, endIndent: AppSpacing.card),
+                      _BudgetTile(category: c, controller: controller, onTap: () => _openSheet(context, c)),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.section),
             ],
             if (without.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.s12),
               _SectionTitle('Belum diatur'),
               for (final c in without) ...[
                 _UnbudgetedTile(category: c, controller: controller, onTap: () => _openSheet(context, c)),
@@ -175,11 +182,18 @@ class _RemainingCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.s12),
-            BudgetProgress.fromAmounts(used: controller.budgetedSpent, budget: controller.totalBudget, pace: controller.paceMarker),
-            if (controller.paceMarker != null) ...[
-              const SizedBox(height: AppSpacing.s8),
-              Text('Garis tegak = posisi hari ini di bulan ini.', style: context.text.bodySmall?.copyWith(color: c.inkMuted)),
-            ],
+            // Penjelasan penanda pace lewat tooltip (ketuk bar), bukan caption permanen.
+            Tooltip(
+              message: 'Garis tegak = posisi hari ini di bulan ini',
+              triggerMode: TooltipTriggerMode.tap,
+              excludeFromSemantics: true,
+              child: BudgetProgress.fromAmounts(
+                used: controller.budgetedSpent,
+                budget: controller.totalBudget,
+                pace: controller.paceMarker,
+                showRemaining: false,
+              ),
+            ),
           ],
         ),
       ),
@@ -187,6 +201,7 @@ class _RemainingCard extends StatelessWidget {
   }
 }
 
+/// Baris ringkas kategori ber-anggaran: nama + sisa, lalu bar dan detail nominal.
 class _BudgetTile extends StatelessWidget {
   const _BudgetTile({required this.category, required this.controller, required this.onTap});
 
@@ -196,26 +211,54 @@ class _BudgetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final budget = controller.budgetByCategory[category.id] ?? 0;
     final spent = controller.spendingByCategory[category.id] ?? 0;
-    return Card(
+    final remaining = budget - spent;
+    final ratio = BudgetProgress.ratioOf(spent, budget);
+    final status = BudgetProgress.statusOf(ratio, warningThreshold: context.components.budgetProgress.warningThreshold);
+    final (statusText, statusColor) = switch (status) {
+      BudgetStatus.safe => ('Sisa ${AppFormat.rupiah(remaining)}', c.ink),
+      BudgetStatus.warning => ('Sisa ${AppFormat.rupiah(remaining)}', c.warning),
+      BudgetStatus.over => ('Lewat ${AppFormat.rupiah(remaining)}', c.danger),
+    };
+    return MergeSemantics(
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.card),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.card, vertical: AppSpacing.s12),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  CategoryBlob(iconAsset: category.icon, color: category.color),
-                  const SizedBox(width: AppSpacing.s12),
-                  Expanded(child: Text(category.label, style: context.text.titleMedium)),
-                  Icon(AppIcons.pencilSimple, color: context.colors.inkMuted, semanticLabel: 'Ubah anggaran ${category.label}'),
-                ],
+              CategoryBlob(iconAsset: category.icon, color: category.color, size: CategoryBlobSize.small),
+              const SizedBox(width: AppSpacing.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(category.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.titleSmall),
+                        ),
+                        const SizedBox(width: AppSpacing.s8),
+                        // Nominal sudah dibacakan lewat semantics BudgetProgress.
+                        ExcludeSemantics(
+                          child: Text(statusText, style: AppTypography.amountSmall.copyWith(color: statusColor)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.s4),
+                    BudgetProgress.fromAmounts(used: spent, budget: budget, pace: controller.paceMarker, showDetails: false),
+                    const SizedBox(height: AppSpacing.s4),
+                    ExcludeSemantics(
+                      child: Text(
+                        '${AppFormat.rupiah(spent)} dari ${AppFormat.rupiah(budget)}',
+                        style: context.text.bodySmall?.copyWith(color: c.inkMuted),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: AppSpacing.s12),
-              BudgetProgress.fromAmounts(used: spent, budget: budget, pace: controller.paceMarker),
             ],
           ),
         ),
