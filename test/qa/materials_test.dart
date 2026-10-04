@@ -14,8 +14,12 @@ import 'package:wister_lite/app/ui/ui.dart';
 import 'support/harness.dart';
 
 /// Warna kontrak ilustrasi: hanya RGB ini yang dipetakan ke token oleh
-/// `IllustrationColorMapper`. Warna lain akan tetap sama di mode gelap.
-const _contractRgb = {0x1B2430, 0x0E8C7F, 0xCDEFE9, 0xFFB547, 0xFFE7C2, 0xFFFFFF, 0x1E9E5A, 0xF0634A};
+/// `IllustrationColorMapper`, plus `fixedRgb` yang sengaja sama di kedua tema.
+/// Warna lain akan tetap sama di mode gelap tanpa disengaja.
+final _contractRgb = {
+  ...{0x1B2430, 0x1B2431, 0x0E8C7F, 0xCDEFE9, 0xFFB547, 0xFFE7C2, 0xFFFFFF, 0x1E9E5A, 0xF0634A},
+  ...IllustrationColorMapper.fixedRgb,
+};
 
 /// Path ikon kategori di rilis sebelum redesign (lib/gen/assets.gen.dart,
 /// commit 3b8ce8e). Nilai ini tersimpan di SQLite pengguna sebagai

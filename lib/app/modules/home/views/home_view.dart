@@ -26,7 +26,7 @@ class HomeView extends GetView<HomeController> {
             slivers: [
               PageAppBar(
                 title: controller.greeting,
-                trailing: _MonthChip(month: controller.currentMonth),
+                trailing: _MoreMenu(controller: controller),
               ),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(AppSpacing.page, 0, AppSpacing.page, 0),
@@ -153,18 +153,60 @@ class HomeView extends GetView<HomeController> {
 }
 
 /// Label bulan aktif: ringkasan Masuk/Keluar di bawah selalu bulan ini.
-class _MonthChip extends StatelessWidget {
-  const _MonthChip({required this.month});
+/// Tombol "lainnya" di header: pilihan bahasa dan mode tema.
+class _MoreMenu extends StatelessWidget {
+  const _MoreMenu({required this.controller});
 
-  final DateTime month;
+  final HomeController controller;
+
+  static const _locales = [(Locale('id', 'ID'), 'Bahasa Indonesia'), (Locale('en', 'US'), 'English')];
+  static const _modes = [
+    (ThemeMode.light, 'Terang', AppIcons.sun),
+    (ThemeMode.dark, 'Gelap', AppIcons.moon),
+    (ThemeMode.system, 'Ikuti sistem', AppIcons.monitor),
+  ];
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    label: 'Ringkasan bulan ${AppFormat.monthYear(month)}',
-    excludeSemantics: true,
-    child: Chip(
-      avatar: Icon(AppIcons.calendarBlank, color: context.colors.brand),
-      label: Text(AppFormat.monthYearShort(month)),
+  Widget build(BuildContext context) => PopupMenuButton<Object>(
+    icon: const Icon(AppIcons.dotsThreeVertical),
+    tooltip: 'Lainnya',
+    onSelected: (value) => switch (value) {
+      Locale l => controller.changeLocale(l),
+      ThemeMode m => controller.changeThemeMode(m),
+      _ => null,
+    },
+    itemBuilder: (context) => [
+      _header(context, 'Bahasa'),
+      for (final (locale, label) in _locales)
+        _option(context, value: locale, label: label, icon: AppIcons.translate, selected: controller.locale.value == locale),
+      const PopupMenuDivider(),
+      _header(context, 'Tema'),
+      for (final (mode, label, icon) in _modes)
+        _option(context, value: mode, label: label, icon: icon, selected: controller.themeMode.value == mode),
+    ],
+  );
+
+  PopupMenuEntry<Object> _header(BuildContext context, String label) => PopupMenuItem<Object>(
+    enabled: false,
+    height: 32,
+    child: Text(label, style: context.text.labelMedium?.copyWith(color: context.colors.inkMuted)),
+  );
+
+  PopupMenuEntry<Object> _option(
+    BuildContext context, {
+    required Object value,
+    required String label,
+    required IconData icon,
+    required bool selected,
+  }) => PopupMenuItem<Object>(
+    value: value,
+    child: Row(
+      children: [
+        Icon(icon, size: 20, color: selected ? context.colors.brand : context.colors.inkMuted),
+        const SizedBox(width: AppSpacing.s12),
+        Expanded(child: Text(label)),
+        if (selected) Icon(AppIcons.check, size: 20, color: context.colors.brand),
+      ],
     ),
   );
 }

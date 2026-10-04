@@ -202,9 +202,17 @@ abstract final class CategoryIcons {
 /// Kunci adalah RGB kontrak ilustrasi (bukan warna UI), alpha asli dipertahankan.
 @immutable
 class IllustrationColorMapper extends ColorMapper {
+  /// Warna kontrak yang sengaja sama di light & dark (tidak dipetakan):
+  /// pipi Dompi dan krem (badan palet, kilau koin). Detail di atasnya pakai
+  /// `#1B2431`.
+  static const fixedRgb = {0xF2A7B5, 0xFFE8C4};
+
   IllustrationColorMapper(AppColors c)
     : _map = {
         0x1B2430: c.ink,
+        // Garis detail di atas isian yang tetap terang di dark (accent, krem):
+        // selalu gelap agar tidak hilang saat `ink` berubah terang.
+        0x1B2431: c.onAccent,
         0x0E8C7F: c.brand,
         0xCDEFE9: c.brandContainer,
         0xFFB547: c.accent,

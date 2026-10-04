@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show DateUtils;
+import 'package:flutter/material.dart' show DateUtils, Locale, ThemeMode;
 import 'package:get/get.dart';
 import 'package:wister_lite/app/ults/clock.dart';
 import 'package:wister_lite/app/data/models/budget_model.dart';
@@ -7,6 +7,7 @@ import 'package:wister_lite/app/data/models/expense.dart';
 import 'package:wister_lite/app/data/repositories/expense_repository.dart';
 import 'package:wister_lite/app/modules/main_nav/controllers/main_nav_controller.dart';
 import 'package:wister_lite/app/routes/app_pages.dart';
+import 'package:wister_lite/app/theme/app_theme.dart';
 import 'package:wister_lite/app/ui/budget_progress.dart';
 import 'package:wister_lite/app/widgets/app_snackbar.dart';
 
@@ -39,6 +40,20 @@ class HomeController extends GetxController {
 
   /// Semua transaksi hari ini (terbaru dulu); view menampilkan [todayLimit] pertama.
   final todayExpenses = <Expense>[].obs;
+
+  /// Pilihan tema & bahasa dari menu "lainnya" di header Beranda.
+  final themeMode = AppTheme.mode.obs;
+  final locale = (Get.locale ?? const Locale('id', 'ID')).obs;
+
+  void changeThemeMode(ThemeMode mode) {
+    themeMode.value = mode;
+    Get.changeThemeMode(mode);
+  }
+
+  void changeLocale(Locale value) {
+    locale.value = value;
+    Get.updateLocale(value);
+  }
 
   /// Bulan yang diringkas di kartu Masuk/Keluar.
   DateTime get currentMonth => DateTime(Clock.now().year, Clock.now().month);

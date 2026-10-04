@@ -45,7 +45,8 @@ class _SuccessCheckState extends State<SuccessCheck> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final fallback = Icon(AppIconsFill.checkCircle, size: widget.size, color: context.colors.income);
+    final c = context.colors;
+    final fallback = Icon(AppIconsFill.checkCircle, size: widget.size, color: c.income);
     return Semantics(
       label: widget.semanticLabel,
       liveRegion: true,
@@ -58,6 +59,13 @@ class _SuccessCheckState extends State<SuccessCheck> with SingleTickerProviderSt
             width: widget.size,
             height: widget.size,
             onLoaded: _onLoaded,
+            // Warna bawaan JSON = brand light; ganti ke token agar ikut tema.
+            delegates: LottieDelegates(
+              values: [
+                ValueDelegate.color(const ['lingkaran', '**'], value: c.brand),
+                ValueDelegate.strokeColor(const ['centang', '**'], value: c.onBrand),
+              ],
+            ),
             errorBuilder: (_, _, _) => fallback,
           ),
         ),
