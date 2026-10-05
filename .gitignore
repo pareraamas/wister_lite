@@ -30,16 +30,9 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-# /build/
+/build/
 /coverage/
 
-# Flutter build outputs — keep only build/app/outputs/flutter-apk, ignore the rest
-/build/*
-!/build/app/
-/build/app/*
-!/build/app/outputs/
-/build/app/outputs/*
-!/build/app/outputs/flutter-apk/
 
 # Android Studio will place build artifacts here
 /android/app/debug
