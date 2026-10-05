@@ -20,8 +20,8 @@ import 'package:wister_lite/app/ults/clock.dart';
 /// Nominal diformat di sini agar sama persis dengan aplikasi; provider native
 /// hanya menampilkan string dan menampilkan Rp 0 untuk total yang tanggalnya sudah lewat.
 class HomeWidgetService extends GetxService {
-  static const _summaryProvider = 'pareraamas.com.wister_lite.SummaryWidgetProvider';
-  static const _budgetProvider = 'pareraamas.com.wister_lite.BudgetWidgetProvider';
+  static const _summaryProvider = 'com.developerparera.wister_lite.SummaryWidgetProvider';
+  static const _budgetProvider = 'com.developerparera.wister_lite.BudgetWidgetProvider';
 
   /// Jadwal gambar ulang tengah malam ke depan; diperbarui tiap [update].
   static const _scheduledDays = 14;

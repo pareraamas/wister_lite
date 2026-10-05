@@ -154,6 +154,8 @@ class HomeView extends GetView<HomeController> {
 
 /// Label bulan aktif: ringkasan Masuk/Keluar di bawah selalu bulan ini.
 /// Tombol "lainnya" di header: pilihan bahasa dan mode tema.
+enum _MenuAction { profile }
+
 class _MoreMenu extends StatelessWidget {
   const _MoreMenu({required this.controller});
 
@@ -173,9 +175,21 @@ class _MoreMenu extends StatelessWidget {
     onSelected: (value) => switch (value) {
       Locale l => controller.changeLocale(l),
       ThemeMode m => controller.changeThemeMode(m),
+      _MenuAction.profile => controller.openProfile(),
       _ => null,
     },
     itemBuilder: (context) => [
+      PopupMenuItem<Object>(
+        value: _MenuAction.profile,
+        child: Row(
+          children: [
+            Icon(AppIcons.userCircle, size: 20, color: context.colors.inkMuted),
+            const SizedBox(width: AppSpacing.s12),
+            const Expanded(child: Text('Profil & sinkronisasi')),
+          ],
+        ),
+      ),
+      const PopupMenuDivider(),
       _header(context, 'Bahasa'),
       for (final (locale, label) in _locales)
         _option(context, value: locale, label: label, icon: AppIcons.translate, selected: controller.locale.value == locale),

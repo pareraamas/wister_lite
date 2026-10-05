@@ -17,6 +17,11 @@ class ExpenseRepository {
     return _databaseHelper.importTransactions(categories, expenses);
   }
 
+  // Wipe all local data and re-seed default categories (sign-out)
+  Future<void> resetLocalData() {
+    return _databaseHelper.resetLocalData();
+  }
+
   // Clear the database
   Future<int> clearDatabase() async {
     return await _databaseHelper.clearDatabase();

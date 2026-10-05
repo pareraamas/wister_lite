@@ -20,6 +20,8 @@ import '../modules/import_preview/bindings/import_preview_binding.dart';
 import '../modules/import_preview/views/import_preview_view.dart';
 import '../modules/transaction_history/bindings/transaction_history_binding.dart';
 import '../modules/transaction_history/views/transaction_history_view.dart';
+import '../modules/profile/bindings/profile_binding.dart';
+import '../modules/profile/views/profile_view.dart';
 
 part 'app_routes.dart';
 
@@ -39,5 +41,6 @@ class AppPages {
     GetPage(name: _Paths.SHARE_CARD, page: () => const ShareCardView(), binding: ShareCardBinding()),
     GetPage(name: _Paths.IMPORT_PREVIEW, page: () => const ImportPreviewView(), binding: ImportPreviewBinding()),
     GetPage(name: _Paths.TRANSACTION_HISTORY, page: () => const TransactionHistoryView(), binding: TransactionHistoryBinding()),
+    GetPage(name: _Paths.PROFILE, page: () => const ProfileView(), binding: ProfileBinding()),
   ];
 }

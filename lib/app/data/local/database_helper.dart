@@ -6,17 +6,29 @@ import 'package:wister_lite/app/data/models/category_model.dart';
 import 'package:wister_lite/app/data/models/expense_type.dart';
 import 'package:wister_lite/app/data/models/budget_model.dart';
 import 'package:wister_lite/app/data/models/transaction_filter.dart';
+import 'package:wister_lite/app/data/api/wister_api.dart';
 
 import 'dart:io';
 
 class DatabaseHelper {
   static const _databaseName = 'expense_database.db';
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
 
   // Table names
   static const tableExpenses = 'expenses';
   static const tableCategories = 'categories';
   static const tableBudgets = 'budgets';
+  static const tableDeletions = 'sync_deletions';
+
+  // Kolom sync (v2) di ketiga tabel data.
+  static const columnUpdatedAt = 'updated_at';
+  static const columnDirty = 'dirty';
+
+  /// Tabel yang ikut sync; namanya juga dipakai sebagai `entity` di API.
+  static const syncedTables = [tableCategories, tableBudgets, tableExpenses];
+
+  /// `updated_at` kategori bawaan: paling tua, agar versi server selalu menang.
+  static const _seedUpdatedAt = '1970-01-01T00:00:00.000Z';
 
   // Expense Column names
   static const columnId = 'id';
@@ -63,7 +75,9 @@ class DatabaseHelper {
         $catId TEXT PRIMARY KEY,
         $catLabel TEXT NOT NULL,
         $catColor INTEGER NOT NULL,
-        $catIcon TEXT NOT NULL
+        $catIcon TEXT NOT NULL,
+        $columnUpdatedAt TEXT,
+        $columnDirty INTEGER NOT NULL DEFAULT 1
       )
     ''');
 
@@ -75,7 +89,9 @@ class DatabaseHelper {
         $columnType TEXT NOT NULL,
         $columnTransactionType TEXT NOT NULL DEFAULT 'expense',
         $columnDateTime TEXT NOT NULL,
-        $columnPrice REAL NOT NULL
+        $columnPrice REAL NOT NULL,
+        $columnUpdatedAt TEXT,
+        $columnDirty INTEGER NOT NULL DEFAULT 1
       )
     ''');
 
@@ -86,27 +102,71 @@ class DatabaseHelper {
         $budgetCategoryId TEXT NOT NULL,
         $budgetYearMonth TEXT NOT NULL,
         $budgetAmount REAL NOT NULL,
+        $columnUpdatedAt TEXT,
+        $columnDirty INTEGER NOT NULL DEFAULT 1,
         UNIQUE($budgetCategoryId, $budgetYearMonth)
       )
     ''');
 
-    // Seed default categories
+    await _createDeletionsTable(db);
+    await _seedCategories(db);
+  }
+
+  /// Hapus lokal dicatat di sini agar ikut terkirim saat sync berikutnya.
+  Future<void> _createDeletionsTable(DatabaseExecutor db) => db.execute('''
+      CREATE TABLE $tableDeletions (
+        entity TEXT NOT NULL,
+        id TEXT NOT NULL,
+        deleted_at TEXT NOT NULL,
+        PRIMARY KEY (entity, id)
+      )
+    ''');
+
+  Future<void> _seedCategories(DatabaseExecutor db) async {
     for (var type in ExpenseType.values) {
       await db.insert(tableCategories, {
         'id': type.toShortString().toLowerCase(), // Use enum name as ID for migration compatibility
         'label': type.label,
         'color_value': type.color.toARGB32(),
         'icon': type.icon,
+        columnUpdatedAt: _seedUpdatedAt,
       });
     }
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Schema history was squashed into version 1 — any older install just gets reset.
-    await db.execute('DROP TABLE IF EXISTS $tableExpenses');
-    await db.execute('DROP TABLE IF EXISTS $tableCategories');
-    await db.execute('DROP TABLE IF EXISTS $tableBudgets');
-    await _onCreate(db, newVersion);
+    if (oldVersion < 2) {
+      // v2: kolom sync. Data lama ditandai dirty agar terunggah saat sync pertama.
+      final now = _now();
+      for (final table in syncedTables) {
+        await db.execute('ALTER TABLE $table ADD COLUMN $columnUpdatedAt TEXT');
+        await db.execute('ALTER TABLE $table ADD COLUMN $columnDirty INTEGER NOT NULL DEFAULT 1');
+        await db.update(table, {columnUpdatedAt: now});
+      }
+      await _createDeletionsTable(db);
+    }
+  }
+
+  static String _now() => DateTime.now().toUtc().toIso8601String();
+
+  /// Baris yang diubah lokal: cap waktu baru dan antre untuk sync.
+  static Map<String, Object?> _stamped(Map<String, dynamic> row) => {...row, columnUpdatedAt: _now(), columnDirty: 1};
+
+  static Future<void> _tombstone(DatabaseExecutor db, String table, Iterable<String> ids) async {
+    final now = _now();
+    for (final id in ids) {
+      await db.insert(tableDeletions, {'entity': table, 'id': id, 'deleted_at': now}, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+  }
+
+  /// Hapus baris berdasarkan id sekaligus mencatat tombstone-nya.
+  Future<int> _deleteWhere(String table, String where, List<Object?> whereArgs) async {
+    Database db = await database;
+    return db.transaction((txn) async {
+      final rows = await txn.query(table, columns: ['id'], where: where, whereArgs: whereArgs);
+      await _tombstone(txn, table, rows.map((r) => r['id'] as String));
+      return txn.delete(table, where: where, whereArgs: whereArgs);
+    });
   }
 
   // --- Category Methods ---
@@ -119,12 +179,12 @@ class DatabaseHelper {
 
   Future<int> insertCategory(Category category) async {
     Database db = await database;
-    return await db.insert(tableCategories, category.toMap());
+    return await db.insert(tableCategories, _stamped(category.toMap()));
   }
 
   Future<int> updateCategory(Category category) async {
     Database db = await database;
-    return await db.update(tableCategories, category.toMap(), where: '$catId = ?', whereArgs: [category.id]);
+    return await db.update(tableCategories, _stamped(category.toMap()), where: '$catId = ?', whereArgs: [category.id]);
   }
 
   Future<int> countExpensesByCategory(String categoryId) async {
@@ -133,9 +193,8 @@ class DatabaseHelper {
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
-  Future<int> deleteCategory(String categoryId) async {
-    Database db = await database;
-    return await db.delete(tableCategories, where: '$catId = ?', whereArgs: [categoryId]);
+  Future<int> deleteCategory(String categoryId) {
+    return _deleteWhere(tableCategories, '$catId = ?', [categoryId]);
   }
 
   // --- Budget Methods ---
@@ -151,22 +210,21 @@ class DatabaseHelper {
     final existing = await db.query(tableBudgets, where: '$budgetCategoryId = ? AND $budgetYearMonth = ?', whereArgs: [categoryId, yearMonth]);
 
     if (existing.isNotEmpty) {
-      await db.update(tableBudgets, {budgetAmount: amount}, where: '$budgetId = ?', whereArgs: [existing.first[budgetId]]);
+      await db.update(tableBudgets, _stamped({budgetAmount: amount}), where: '$budgetId = ?', whereArgs: [existing.first[budgetId]]);
     } else {
-      await db.insert(tableBudgets, Budget.create(categoryId: categoryId, yearMonth: yearMonth, amount: amount).toMap());
+      await db.insert(tableBudgets, _stamped(Budget.create(categoryId: categoryId, yearMonth: yearMonth, amount: amount).toMap()));
     }
   }
 
-  Future<int> deleteBudget(String categoryId, String yearMonth) async {
-    Database db = await database;
-    return await db.delete(tableBudgets, where: '$budgetCategoryId = ? AND $budgetYearMonth = ?', whereArgs: [categoryId, yearMonth]);
+  Future<int> deleteBudget(String categoryId, String yearMonth) {
+    return _deleteWhere(tableBudgets, '$budgetCategoryId = ? AND $budgetYearMonth = ?', [categoryId, yearMonth]);
   }
 
   // --- Expense Methods ---
 
   Future<int> insertExpense(Expense expense) async {
     Database db = await database;
-    return await db.insert(tableExpenses, expense.toDbMap());
+    return await db.insert(tableExpenses, _stamped(expense.toDbMap()));
   }
 
   /// Simpan hasil import dalam satu transaksi SQLite: gagal satu, batal semua.
@@ -176,10 +234,10 @@ class DatabaseHelper {
     await db.transaction((txn) async {
       final batch = txn.batch();
       for (final c in categories) {
-        batch.insert(tableCategories, c.toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
+        batch.insert(tableCategories, _stamped(c.toMap()), conflictAlgorithm: ConflictAlgorithm.ignore);
       }
       for (final e in expenses) {
-        batch.insert(tableExpenses, e.toDbMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
+        batch.insert(tableExpenses, _stamped(e.toDbMap()), conflictAlgorithm: ConflictAlgorithm.ignore);
       }
       await batch.commit(noResult: true);
     });
@@ -323,12 +381,11 @@ class DatabaseHelper {
 
   Future<int> updateExpense(Expense expense) async {
     Database db = await database;
-    return await db.update(tableExpenses, expense.toDbMap(), where: '$columnId = ?', whereArgs: [expense.id]);
+    return await db.update(tableExpenses, _stamped(expense.toDbMap()), where: '$columnId = ?', whereArgs: [expense.id]);
   }
 
-  Future<int> deleteExpense(String id) async {
-    Database db = await database;
-    return await db.delete(tableExpenses, where: '$columnId = ?', whereArgs: [id]);
+  Future<int> deleteExpense(String id) {
+    return _deleteWhere(tableExpenses, '$columnId = ?', [id]);
   }
 
   Future<List<Expense>> getExpensesByDateRange(DateTime start, DateTime end, {String? transactionType}) async {
@@ -414,6 +471,111 @@ class DatabaseHelper {
     );
 
     return result.first['total'] as double? ?? 0.0;
+  }
+
+  // --- Sync Methods ---
+
+  /// Kolom yang dikirim/diterima per tabel (selain `updated_at`).
+  static const _syncColumns = {
+    tableCategories: [catId, catLabel, catColor, catIcon],
+    tableBudgets: [budgetId, budgetCategoryId, budgetYearMonth, budgetAmount],
+    tableExpenses: [columnId, columnName, columnType, columnTransactionType, columnDateTime, columnPrice],
+  };
+
+  /// Jumlah perubahan lokal yang belum terkirim ke server.
+  Future<int> pendingChangeCount() async {
+    Database db = await database;
+    var count = 0;
+    for (final table in syncedTables) {
+      count += Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM $table WHERE $columnDirty = 1')) ?? 0;
+    }
+    return count + (Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM $tableDeletions')) ?? 0);
+  }
+
+  Future<SyncChanges> collectChanges() async {
+    Database db = await database;
+    return SyncChanges(
+      rows: {
+        for (final table in syncedTables)
+          table: await db.query(table, columns: [..._syncColumns[table]!, columnUpdatedAt], where: '$columnDirty = 1'),
+      },
+      deletions: await db.query(tableDeletions),
+    );
+  }
+
+  /// Tandai [sent] sudah terkirim. Baris yang diubah lagi selama sync
+  /// (`updated_at` berbeda) tetap dirty.
+  Future<void> markSynced(SyncChanges sent) async {
+    Database db = await database;
+    final batch = db.batch();
+    sent.rows.forEach((table, rows) {
+      for (final r in rows) {
+        batch.update(table, {columnDirty: 0}, where: 'id = ? AND $columnUpdatedAt = ?', whereArgs: [r['id'], r[columnUpdatedAt]]);
+      }
+    });
+    for (final d in sent.deletions) {
+      batch.delete(tableDeletions, where: 'entity = ? AND id = ? AND deleted_at = ?', whereArgs: [d['entity'], d['id'], d['deleted_at']]);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// Terapkan perubahan dari server. Last-write-wins: perubahan lokal yang
+  /// belum terkirim dan lebih baru tidak ditimpa.
+  Future<void> applyRemote(SyncChanges remote) async {
+    Database db = await database;
+    await db.transaction((txn) async {
+      for (final table in syncedTables) {
+        for (final row in remote.rows[table] ?? const <Map<String, dynamic>>[]) {
+          final id = row['id'] as String;
+          final remoteAt = row[columnUpdatedAt];
+          if (await _localWins(txn, table, id, remoteAt)) continue;
+
+          if (table == tableBudgets) {
+            // Slot kategori+bulan yang sama dari HP lain: versi server yang dipakai.
+            await txn.delete(
+              tableBudgets,
+              where: '$budgetCategoryId = ? AND $budgetYearMonth = ? AND $budgetId != ?',
+              whereArgs: [row[budgetCategoryId], row[budgetYearMonth], id],
+            );
+          }
+          await txn.insert(table, {
+            for (final c in _syncColumns[table]!) c: row[c],
+            columnUpdatedAt: remoteAt,
+            columnDirty: 0,
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          await txn.delete(tableDeletions, where: 'entity = ? AND id = ?', whereArgs: [table, id]);
+        }
+      }
+
+      for (final d in remote.deletions) {
+        final table = d['entity'] as String;
+        if (!_syncColumns.containsKey(table)) continue;
+        final id = d['id'] as String;
+        if (await _localWins(txn, table, id, d['deleted_at'])) continue;
+        await txn.delete(table, where: 'id = ?', whereArgs: [id]);
+        await txn.delete(tableDeletions, where: 'entity = ? AND id = ?', whereArgs: [table, id]);
+      }
+    });
+  }
+
+  /// True bila perubahan lokal (edit atau hapus) belum terkirim dan lebih baru dari [remoteAt].
+  Future<bool> _localWins(DatabaseExecutor txn, String table, String id, Object? remoteAt) async {
+    final remote = DateTime.tryParse('$remoteAt');
+    final local = await txn.query(table, columns: [columnUpdatedAt], where: 'id = ? AND $columnDirty = 1', whereArgs: [id]);
+    final tomb = await txn.query(tableDeletions, columns: ['deleted_at'], where: 'entity = ? AND id = ?', whereArgs: [table, id]);
+    final localAt = DateTime.tryParse('${local.firstOrNull?[columnUpdatedAt] ?? tomb.firstOrNull?['deleted_at']}');
+    return localAt != null && (remote == null || localAt.isAfter(remote));
+  }
+
+  /// Kosongkan semua data di HP (keluar akun), lalu isi lagi kategori bawaan.
+  Future<void> resetLocalData() async {
+    Database db = await database;
+    await db.transaction((txn) async {
+      for (final table in [...syncedTables, tableDeletions]) {
+        await txn.delete(table);
+      }
+      await _seedCategories(txn);
+    });
   }
 
   Future<void> close() async {

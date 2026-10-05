@@ -1,0 +1,114 @@
+{
+  "project_info": {
+    "project_number": "407028479534",
+    "project_id": "wister-lite-app",
+    "storage_bucket": "wister-lite-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407028479534:android:ee0518f7736e8d63c991bf",
+        "android_client_info": {
+          "package_name": "com.developerparera.wister_lite"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "407028479534-i8rruos7gtn34p2hfck1qne7cug7eeme.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.developerparera.wister_lite",
+            "certificate_hash": "3fe7e7c0469546a5c9f8a339d8398164e78a4a84"
+          }
+        },
+        {
+          "client_id": "407028479534-o4ohfejt96pnqq3e1cp1k2srl52b016h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.developerparera.wister_lite",
+            "certificate_hash": "2e56c6b18de52118d64bc1eb51f547ecfdaa77a1"
+          }
+        },
+        {
+          "client_id": "407028479534-udha0taua19ul302a973io03ndpt687u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHC8vGSV0qnGqpgdPoeJhznga7kg0Rw-c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "407028479534-udha0taua19ul302a973io03ndpt687u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "407028479534-4pr8ijn4fs8rvrb2rfbeuc7rc0jtq2ia.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "pareraamas.com.wisterLite"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407028479534:android:b71518c4c9dee8c0c991bf",
+        "android_client_info": {
+          "package_name": "pareraamas.com.wister_lite"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "407028479534-aia5pri7ma9ag2f2dne85h3ldsvvpkhm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pareraamas.com.wister_lite",
+            "certificate_hash": "2e56c6b18de52118d64bc1eb51f547ecfdaa77a1"
+          }
+        },
+        {
+          "client_id": "407028479534-u3sch532kifko92f8hoquuv0graalqq9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pareraamas.com.wister_lite",
+            "certificate_hash": "3fe7e7c0469546a5c9f8a339d8398164e78a4a84"
+          }
+        },
+        {
+          "client_id": "407028479534-udha0taua19ul302a973io03ndpt687u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHC8vGSV0qnGqpgdPoeJhznga7kg0Rw-c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "407028479534-udha0taua19ul302a973io03ndpt687u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "407028479534-4pr8ijn4fs8rvrb2rfbeuc7rc0jtq2ia.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "pareraamas.com.wisterLite"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

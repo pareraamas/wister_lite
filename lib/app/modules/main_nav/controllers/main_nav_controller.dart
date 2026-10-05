@@ -1,6 +1,8 @@
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
+import 'package:wister_lite/app/data/services/ad_service.dart';
 import 'package:wister_lite/app/data/services/home_widget_service.dart';
+import 'package:wister_lite/app/data/services/sync_service.dart';
 import 'package:wister_lite/app/modules/budget/controllers/budget_controller.dart';
 import 'package:wister_lite/app/modules/home/controllers/home_controller.dart';
 import 'package:wister_lite/app/modules/statistik/controllers/statistik_controller.dart';
@@ -26,6 +28,8 @@ class MainNavController extends GetxController {
   void onReady() {
     super.onReady();
     if (Get.isRegistered<HomeWidgetService>()) Get.find<HomeWidgetService>().handleInitialLaunch();
+    // Tarik perubahan dari HP lain setiap aplikasi dibuka.
+    if (Get.isRegistered<SyncService>()) Get.find<SyncService>().syncNow();
   }
 
   void changeTab(int index) {
@@ -41,7 +45,10 @@ class MainNavController extends GetxController {
   /// FAB tambah: buka form tambah transaksi, lalu segarkan semua tab.
   Future<void> openCreateTransaction() async {
     final result = await Get.toNamed(Routes.EXPANSE_CREATE);
-    if (result == true) refreshAll();
+    if (result != true) return;
+    refreshAll();
+    // Jeda alami setelah mencatat: tempat iklan sela (bila dinyalakan).
+    if (Get.isRegistered<AdService>()) Get.find<AdService>().maybeShow();
   }
 
   /// Dipanggil setelah transaksi/kategori/budget berubah dari layar mana pun.
@@ -51,5 +58,6 @@ class MainNavController extends GetxController {
     if (Get.isRegistered<StatistikController>()) Get.find<StatistikController>().loadData();
     if (Get.isRegistered<TransactionHistoryController>()) Get.find<TransactionHistoryController>().reload();
     if (Get.isRegistered<HomeWidgetService>()) Get.find<HomeWidgetService>().update();
+    if (Get.isRegistered<SyncService>()) Get.find<SyncService>().scheduleSync();
   }
 }

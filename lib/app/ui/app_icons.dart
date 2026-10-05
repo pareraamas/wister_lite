@@ -41,12 +41,21 @@ abstract final class AppIcons {
   static const fileXls = IconData(0xeb22, fontFamily: _regular, fontPackage: _pkg);
   static const filePdf = IconData(0xe702, fontFamily: _regular, fontPackage: _pkg);
   static const downloadSimple = IconData(0xe20c, fontFamily: _regular, fontPackage: _pkg);
+  static const userCircle = IconData(0xe4c4, fontFamily: _regular, fontPackage: _pkg);
+  static const googleLogo = IconData(0xe292, fontFamily: _regular, fontPackage: _pkg);
+  static const cloudArrowUp = IconData(0xe1ae, fontFamily: _regular, fontPackage: _pkg);
+  static const cloudCheck = IconData(0xe1b0, fontFamily: _regular, fontPackage: _pkg);
+  static const cloudSlash = IconData(0xe1b6, fontFamily: _regular, fontPackage: _pkg);
+  static const cloudWarning = IconData(0xea98, fontFamily: _regular, fontPackage: _pkg);
+  static const arrowsClockwise = IconData(0xe094, fontFamily: _regular, fontPackage: _pkg);
+  static const playCircle = IconData(0xe3d2, fontFamily: _regular, fontPackage: _pkg);
 
   // Ikon berarah, ikut dicerminkan di bahasa RTL.
   static const caretLeft = IconData(0xe138, fontFamily: _regular, fontPackage: _pkg, matchTextDirection: true);
   static const caretRight = IconData(0xe13a, fontFamily: _regular, fontPackage: _pkg, matchTextDirection: true);
   static const arrowLeft = IconData(0xe058, fontFamily: _regular, fontPackage: _pkg, matchTextDirection: true);
   static const backspace = IconData(0xe0ae, fontFamily: _regular, fontPackage: _pkg, matchTextDirection: true);
+  static const signOut = IconData(0xe42a, fontFamily: _regular, fontPackage: _pkg, matchTextDirection: true);
 }
 
 /// Varian fill Phosphor, untuk status aktif/tegas.

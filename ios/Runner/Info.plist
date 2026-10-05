@@ -2,6 +2,25 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- AdMob App ID uji Google; ganti dengan ID asli sebelum rilis. -->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<!-- Google Sign-In (Firebase project wister-lite-app). -->
+	<key>GIDClientID</key>
+	<string>407028479534-ae3ug087ddqrfrrbeap57ee29d8009im.apps.googleusercontent.com</string>
+	<key>GIDServerClientID</key>
+	<string>407028479534-udha0taua19ul302a973io03ndpt687u.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.407028479534-ae3ug087ddqrfrrbeap57ee29d8009im</string>
+			</array>
+		</dict>
+	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

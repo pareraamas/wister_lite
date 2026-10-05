@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Menjadwalkan ulang pembaruan widget tengah malam setelah HP dinyalakan ulang. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Sinkronisasi ke server dan iklan AdMob. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:label="Wister Lite"
@@ -77,6 +79,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- AdMob App ID (Wister Lite Android). -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-1345642089171121~9699881642" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

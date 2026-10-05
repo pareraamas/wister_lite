@@ -13,6 +13,7 @@ abstract class Routes {
   static const SHARE_CARD = _Paths.SHARE_CARD;
   static const IMPORT_PREVIEW = _Paths.IMPORT_PREVIEW;
   static const TRANSACTION_HISTORY = _Paths.TRANSACTION_HISTORY;
+  static const PROFILE = _Paths.PROFILE;
 }
 
 abstract class _Paths {
@@ -27,4 +28,5 @@ abstract class _Paths {
   static const SHARE_CARD = '/share-card';
   static const IMPORT_PREVIEW = '/import-preview';
   static const TRANSACTION_HISTORY = '/transaction-history';
+  static const PROFILE = '/profile';
 }

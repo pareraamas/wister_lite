@@ -4,6 +4,8 @@ import 'package:wister_lite/app/data/models/expense.dart';
 import 'package:wister_lite/app/data/models/transaction_filter.dart';
 import 'package:wister_lite/app/data/repositories/expense_repository.dart';
 
+import 'fixtures.dart';
+
 /// Bulan & hari acuan untuk semua test QA. Golden harus sama besok maupun
 /// tahun depan, jadi "bulan ini" dan "hari ini" dipatok ke sini.
 final referenceToday = DateTime(2026, 9, 28);
@@ -110,6 +112,16 @@ class FakeExpenseRepository implements ExpenseRepository {
     this.categories.addAll(categories.where((c) => catIds.add(c.id)));
     final ids = {for (final e in this.expenses) e.id};
     this.expenses.addAll(expenses.where((e) => ids.add(e.id)).map((e) => e.copyWith()));
+  }
+
+  @override
+  Future<void> resetLocalData() async {
+    writes.add('resetLocalData');
+    expenses.clear();
+    budgets.clear();
+    categories
+      ..clear()
+      ..addAll(seedCategories());
   }
 
   @override

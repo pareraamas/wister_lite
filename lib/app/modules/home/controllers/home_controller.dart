@@ -109,6 +109,8 @@ class HomeController extends GetxController {
     Get.toNamed(route);
   }
 
+  void openProfile() => Get.toNamed(Routes.PROFILE);
+
   /// Riwayat lengkap dengan filter ada di halaman sendiri.
   void openHistory() => Get.toNamed(Routes.TRANSACTION_HISTORY);
 
