@@ -81,6 +81,8 @@ void main() {
     final want = await expected((r) => r.setBudget('internet', referenceToday, 400000));
     await run(tester, Routes.MAIN_NAV, null, (d) async {
       await d.openTab('Anggaran');
+      await tapAny(tester, [find.text('Tambah'), find.text('Atur anggaran')], what: 'tombol tambah anggaran');
+      await d.tapText('Ganti');
       await d.tapText('Internet');
       await d.enterAmount(400000, fieldLabel: 'Anggaran');
       await d.save();

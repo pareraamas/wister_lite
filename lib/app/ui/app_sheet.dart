@@ -10,6 +10,7 @@ class AppSheet extends StatelessWidget {
     required this.child,
     this.subtitle,
     this.leading,
+    this.trailing,
     this.primaryLabel,
     this.onPrimary,
   });
@@ -21,6 +22,9 @@ class AppSheet extends StatelessWidget {
 
   /// Widget di kiri judul (mis. `CategoryBlob` besar).
   final Widget? leading;
+
+  /// Widget di kanan judul (mis. pemilih kategori).
+  final Widget? trailing;
   final Widget child;
 
   /// Label tombol utama. Tombol tidak tampil bila null.
@@ -36,6 +40,7 @@ class AppSheet extends StatelessWidget {
     required Widget child,
     String? subtitle,
     Widget? leading,
+    Widget? trailing,
     String? primaryLabel,
     VoidCallback? onPrimary,
     bool isDismissible = true,
@@ -49,6 +54,7 @@ class AppSheet extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       leading: leading,
+      trailing: trailing,
       primaryLabel: primaryLabel,
       onPrimary: onPrimary,
       child: child,
@@ -101,6 +107,7 @@ class AppSheet extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (trailing != null) ...[const SizedBox(width: AppSpacing.s8), trailing!],
                   ],
                 ),
                 const SizedBox(height: AppSpacing.s16),

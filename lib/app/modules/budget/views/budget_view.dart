@@ -90,7 +90,16 @@ class BudgetView extends GetView<BudgetController> {
             else ...[
               _RemainingCard(controller: controller),
               const SizedBox(height: AppSpacing.section),
-              _SectionTitle('Kategori'),
+              _SectionTitle(
+                'Kategori',
+                trailing: without.isEmpty
+                    ? null
+                    : TextButton.icon(
+                        onPressed: () => _openSheet(context, without.first),
+                        icon: const Icon(AppIcons.plus, size: 18),
+                        label: const Text('Tambah'),
+                      ),
+              ),
               Card(
                 clipBehavior: Clip.antiAlias,
                 child: Column(
@@ -102,14 +111,6 @@ class BudgetView extends GetView<BudgetController> {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.section),
-            ],
-            if (without.isNotEmpty) ...[
-              _SectionTitle('Belum diatur'),
-              for (final c in without) ...[
-                _UnbudgetedTile(category: c, controller: controller, onTap: () => _openSheet(context, c)),
-                const SizedBox(height: AppSpacing.s8),
-              ],
             ],
           ],
         ),
@@ -127,14 +128,20 @@ class BudgetView extends GetView<BudgetController> {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
+  const _SectionTitle(this.text, {this.trailing});
 
   final String text;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: AppSpacing.s8),
-    child: Semantics(header: true, child: Text(text, style: context.text.titleMedium)),
+    child: Row(
+      children: [
+        Expanded(child: Semantics(header: true, child: Text(text, style: context.text.titleMedium))),
+        ?trailing,
+      ],
+    ),
   );
 }
 
@@ -267,47 +274,6 @@ class _BudgetTile extends StatelessWidget {
   }
 }
 
-class _UnbudgetedTile extends StatelessWidget {
-  const _UnbudgetedTile({required this.category, required this.controller, required this.onTap});
-
-  final Category category;
-  final BudgetController controller;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    final spent = controller.spendingByCategory[category.id] ?? 0;
-    return Material(
-      color: c.surfaceContainerLow,
-      borderRadius: AppRadius.cardAll,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.card, vertical: AppSpacing.s8),
-          child: Row(
-            children: [
-              CategoryBlob(iconAsset: category.icon, color: category.color, size: CategoryBlobSize.small),
-              const SizedBox(width: AppSpacing.s12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(category.label, style: context.text.titleSmall),
-                    if (spent > 0) Text('Terpakai ${AppFormat.rupiah(spent)}', style: context.text.bodySmall?.copyWith(color: c.inkMuted)),
-                  ],
-                ),
-              ),
-              TextButton(onPressed: onTap, child: const Text('Atur')),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Sheet atur budget: konteks pengeluaran bulan ini + nominal via keypad.
 class _BudgetSheet extends StatefulWidget {
   const _BudgetSheet({required this.category, required this.controller});
@@ -320,22 +286,41 @@ class _BudgetSheet extends StatefulWidget {
 }
 
 class _BudgetSheetState extends State<_BudgetSheet> {
-  late final double _current = widget.controller.budgetByCategory[widget.category.id] ?? 0;
+  late Category _category = widget.category;
   late int _amount = _current.round();
 
+  double get _current => widget.controller.budgetByCategory[_category.id] ?? 0;
+
+  /// Kategori yang bisa dipilih: hanya saat menambah anggaran baru.
+  late final List<Category> _choices = _current > 0 ? const [] : widget.controller.categoriesWithoutBudget;
+
   Future<void> _save(double amount) async {
-    await widget.controller.setBudget(widget.category.id, amount);
+    await widget.controller.setBudget(_category.id, amount);
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _pickCategory() async {
+    final picked = await AppSheet.show<Category>(
+      context,
+      title: 'Pilih kategori',
+      child: _CategoryPicker(categories: _choices, selectedId: _category.id),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _category = picked;
+      _amount = _current.round();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final spent = widget.controller.spendingByCategory[widget.category.id] ?? 0;
+    final spent = widget.controller.spendingByCategory[_category.id] ?? 0;
     return AppSheet(
-      title: 'Anggaran ${widget.category.label}',
+      title: 'Anggaran ${_category.label}',
       subtitle: 'Terpakai bulan ini ${AppFormat.rupiah(spent)}',
-      leading: CategoryBlob(iconAsset: widget.category.icon, color: widget.category.color, size: CategoryBlobSize.large),
+      leading: CategoryBlob(iconAsset: _category.icon, color: _category.color, size: CategoryBlobSize.large),
+      trailing: _choices.length > 1 ? TextButton(onPressed: _pickCategory, child: const Text('Ganti')) : null,
       primaryLabel: 'Simpan anggaran',
       onPrimary: _amount > 0 ? () => _save(_amount.toDouble()) : null,
       child: SingleChildScrollView(
@@ -363,6 +348,64 @@ class _BudgetSheetState extends State<_BudgetSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Grid kategori yang belum punya anggaran; bisa di-scroll berapa pun jumlahnya.
+class _CategoryPicker extends StatelessWidget {
+  const _CategoryPicker({required this.categories, required this.selectedId});
+
+  final List<Category> categories;
+  final String selectedId;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return GridView.builder(
+      shrinkWrap: true,
+      itemCount: categories.length,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 96,
+        mainAxisExtent: 104,
+        crossAxisSpacing: AppSpacing.s8,
+        mainAxisSpacing: AppSpacing.s8,
+      ),
+      itemBuilder: (context, index) {
+        final cat = categories[index];
+        final selected = cat.id == selectedId;
+        return Semantics(
+          button: true,
+          selected: selected,
+          label: cat.label,
+          excludeSemantics: true,
+          child: Material(
+            color: selected ? c.brandContainer : c.surfaceContainerLow,
+            borderRadius: AppRadius.inputAll,
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => Navigator.of(context).pop(cat),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.s4),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CategoryBlob(iconAsset: cat.icon, color: cat.color, size: CategoryBlobSize.large),
+                    const SizedBox(height: AppSpacing.s4),
+                    Text(
+                      cat.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: context.text.labelMedium?.copyWith(color: selected ? c.onBrandContainer : c.ink),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
