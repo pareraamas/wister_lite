@@ -53,3 +53,11 @@ migrate_working_dir/
 .fvm/
 # Keystore generator config (contains signing password)
 file-gka.yaml
+
+# Golden test failure outputs (generated)
+**/failures/
+
+# Android signing secrets
+/android/key.properties
+*.keystore
+*.jks
