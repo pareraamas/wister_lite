@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:wister_lite/app/data/services/transaction_csv.dart';
 import 'package:wister_lite/app/data/services/transaction_import.dart';
 import 'package:wister_lite/app/theme/app_theme.dart';
 import 'package:wister_lite/app/ui/ui.dart';
@@ -18,32 +19,32 @@ class ImportPreviewView extends GetView<ImportPreviewController> {
     final plan = controller.plan;
     final n = plan.expenses.length;
     return Scaffold(
-      appBar: AppBar(title: const Text('Pratinjau Import')),
+      appBar: AppBar(title: Text('Pratinjau Import'.tr)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.s8, AppSpacing.page, AppSpacing.s24),
         children: [
           if (plan.missingColumns.isNotEmpty)
             _Notice(
-              title: 'Kolom wajib tidak ditemukan',
-              message:
-                  'File harus punya kolom ${[for (final c in plan.missingColumns) _columnLabel(c)].join(', ')}. '
-                  'Pakai template agar formatnya pas.',
+              title: 'Kolom wajib tidak ditemukan'.tr,
+              message: 'File harus punya kolom @cols. Pakai template agar formatnya pas.'.trParams({
+                'cols': [for (final c in plan.missingColumns) _columnLabel(c)].join(', '),
+              }),
             )
           else if (plan.isEmpty)
             _Notice(
-              title: 'Tidak ada transaksi baru',
+              title: 'Tidak ada transaksi baru'.tr,
               message: plan.duplicates > 0
-                  ? 'Semua transaksi di file ini sudah ada di catatanmu.'
-                  : 'Tidak ada baris yang bisa dibaca. Cek bagian "Dilewati" di bawah atau pakai template.',
+                  ? 'Semua transaksi di file ini sudah ada di catatanmu.'.tr
+                  : 'Tidak ada baris yang bisa dibaca. Cek bagian "Dilewati" di bawah atau pakai template.'.tr,
             )
           else
             _Summary(controller: controller),
           if (plan.newCategories.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.section),
-            _Header('Kategori baru (${plan.newCategories.length})'),
+            _Header('Kategori baru (@n)'.trParams({'n': '${plan.newCategories.length}'})),
             const SizedBox(height: AppSpacing.s4),
             Text(
-              'Dibuat otomatis. Ikon dan warnanya bisa diubah di Kelola Kategori.',
+              'Dibuat otomatis. Ikon dan warnanya bisa diubah di Kelola Kategori.'.tr,
               style: context.text.bodySmall?.copyWith(color: context.colors.inkMuted),
             ),
             const SizedBox(height: AppSpacing.s12),
@@ -61,13 +62,13 @@ class ImportPreviewView extends GetView<ImportPreviewController> {
           ],
           if (plan.duplicates > 0 || plan.issues.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.section),
-            _Header('Dilewati (${plan.duplicates + plan.issues.length})'),
+            _Header('Dilewati (@n)'.trParams({'n': '${plan.duplicates + plan.issues.length}'})),
             const SizedBox(height: AppSpacing.s8),
             _Skipped(plan: plan, maxIssues: _issueCount),
           ],
           if (n > 0) ...[
             const SizedBox(height: AppSpacing.section),
-            _Header(n > _sampleCount ? 'Contoh $_sampleCount dari $n transaksi' : 'Transaksi'),
+            _Header(n > _sampleCount ? 'Contoh @shown dari @total transaksi'.trParams({'shown': '$_sampleCount', 'total': '$n'}) : 'Transaksi'.tr),
             const SizedBox(height: AppSpacing.s8),
             for (final e in plan.expenses.take(_sampleCount)) ...[
               TransactionTile(
@@ -88,7 +89,7 @@ class ImportPreviewView extends GetView<ImportPreviewController> {
               builder: (context) => TextButton.icon(
                 onPressed: () => controller.shareTemplate(origin: _originOf(context)),
                 icon: const Icon(AppIcons.fileCsv),
-                label: const Text('Bagikan template CSV'),
+                label: Text('Bagikan template CSV'.tr),
               ),
             ),
           ),
@@ -99,21 +100,20 @@ class ImportPreviewView extends GetView<ImportPreviewController> {
           : SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.s8, AppSpacing.page, AppSpacing.s16),
-                child: Obx(() => FilledButton(onPressed: controller.isSaving.value ? null : controller.save, child: Text('Impor $n transaksi'))),
+                child: Obx(
+                  () => FilledButton(
+                    onPressed: controller.isSaving.value ? null : controller.save,
+                    child: Text('Impor @n transaksi'.trParams({'n': '$n'})),
+                  ),
+                ),
               ),
             ),
     );
   }
 }
 
-String _columnLabel(ImportColumn c) => switch (c) {
-  ImportColumn.date => 'Tanggal',
-  ImportColumn.type => 'Jenis',
-  ImportColumn.category => 'Kategori',
-  ImportColumn.name => 'Nama',
-  ImportColumn.amount => 'Jumlah',
-  ImportColumn.id => 'ID',
-};
+/// Sama dengan header CSV/Excel di bahasa aktif.
+String _columnLabel(ImportColumn c) => TransactionCsv.headers[c.index];
 
 Rect? _originOf(BuildContext context) {
   final box = context.findRenderObject() as RenderBox?;
@@ -152,7 +152,7 @@ class _Summary extends StatelessWidget {
               style: context.text.labelMedium?.copyWith(color: c.inkMuted),
             ),
             const SizedBox(height: AppSpacing.s4),
-            Text('${controller.expenses.length} transaksi siap diimpor', style: context.text.titleLarge),
+            Text('@n transaksi siap diimpor'.trParams({'n': '${controller.expenses.length}'}), style: context.text.titleLarge),
             const SizedBox(height: AppSpacing.s4),
             Text(
               range.$1 == range.$2 ? date(range.$1) : '${date(range.$1)} – ${date(range.$2)}',
@@ -163,8 +163,8 @@ class _Summary extends StatelessWidget {
               spacing: AppSpacing.s16,
               runSpacing: AppSpacing.s4,
               children: [
-                AmountText(controller.total('income'), kind: AmountKind.income, semanticsPrefix: 'Total pemasukan'),
-                AmountText(controller.total('expense'), kind: AmountKind.expense, semanticsPrefix: 'Total pengeluaran'),
+                AmountText(controller.total('income'), kind: AmountKind.income, semanticsPrefix: 'Total pemasukan'.tr),
+                AmountText(controller.total('expense'), kind: AmountKind.expense, semanticsPrefix: 'Total pengeluaran'.tr),
               ],
             ),
           ],
@@ -226,13 +226,13 @@ class _Skipped extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (plan.duplicates > 0) Text('${plan.duplicates} transaksi sudah ada di catatanmu', style: context.text.bodyLarge),
+            if (plan.duplicates > 0) Text('@n transaksi sudah ada di catatanmu'.trParams({'n': '${plan.duplicates}'}), style: context.text.bodyLarge),
             if (plan.duplicates > 0 && plan.issues.isNotEmpty) const SizedBox(height: AppSpacing.s12),
             if (plan.issues.isNotEmpty) ...[
-              Text('${plan.issues.length} baris tidak bisa dibaca', style: context.text.bodyLarge),
+              Text('@n baris tidak bisa dibaca'.trParams({'n': '${plan.issues.length}'}), style: context.text.bodyLarge),
               const SizedBox(height: AppSpacing.s4),
               for (final issue in plan.issues.take(maxIssues)) Text(issue.toString(), style: muted),
-              if (rest > 0) Text('+$rest baris lainnya', style: muted),
+              if (rest > 0) Text('+@n baris lainnya'.trParams({'n': '$rest'}), style: muted),
             ],
           ],
         ),

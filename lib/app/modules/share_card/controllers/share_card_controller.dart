@@ -95,11 +95,16 @@ class ShareCardController extends GetxController {
       final images = <(Uint8List, String)>[];
       for (var i = 0; i < keys.length; i++) {
         final png = await _capture(keys[i]);
-        images.add((png, story ? 'ringkasan-$stamp-story.png' : 'ringkasan-$stamp-feed-${i + 1}.png'));
+        images.add((
+          png,
+          story
+              ? 'ringkasan-@stamp-story.png'.trParams({'stamp': stamp})
+              : 'ringkasan-@stamp-feed-@n.png'.trParams({'stamp': stamp, 'n': '${i + 1}'}),
+        ));
       }
       await Get.find<ShareService>().shareImages(images, origin: origin);
     } catch (_) {
-      showAppSnackBar('Gagal membuat gambar. Coba lagi.');
+      showAppSnackBar('Gagal membuat gambar. Coba lagi.'.tr);
     } finally {
       isSharing.value = false;
     }

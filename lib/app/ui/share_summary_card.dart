@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../gen/assets.gen.dart';
 import '../theme/app_theme.dart';
@@ -65,15 +66,15 @@ class ShareSummaryData {
   /// "Hemat 32% dari pemasukan" — tetap bermakna walau nominal disembunyikan.
   String? get highlight {
     if (income <= 0) return null;
-    if (balance < 0) return 'Pengeluaran melebihi pemasukan';
-    return 'Hemat ${(balance / income * 100).round()}% dari pemasukan';
+    if (balance < 0) return 'Pengeluaran melebihi pemasukan'.tr;
+    return 'Hemat @n% dari pemasukan'.trParams({'n': '${(balance / income * 100).round()}'});
   }
 
   /// [max] kategori terbesar + "Lainnya" untuk sisanya.
   List<ShareCardSlice> top(int max) {
     if (categories.length <= max) return categories;
     final rest = categories.skip(max).fold(0.0, (sum, s) => sum + s.amount);
-    return [...categories.take(max), ShareCardSlice(label: 'Lainnya', amount: rest)];
+    return [...categories.take(max), ShareCardSlice(label: 'Lainnya'.tr, amount: rest)];
   }
 
   double shareOf(double amount) => expense <= 0 ? 0 : (amount / expense).clamp(0.0, 1.0);
@@ -85,9 +86,11 @@ String _money(num amount, bool hide) => hide ? 'Rp •••' : AppFormat.rupiah
 String _compact(num amount) {
   final n = amount.abs();
   String short(double v, String unit) => '${(v * 10).round() % 10 == 0 ? v.round() : v.toStringAsFixed(1).replaceAll('.', ',')}$unit';
-  if (n >= 1e9) return short(n / 1e9, 'M');
-  if (n >= 1e6) return short(n / 1e6, 'jt');
-  if (n >= 1e3) return '${(n / 1e3).round()}rb';
+  // Satuan ikut bahasa: rb/jt/M (ribu/juta/miliar) ↔ K/M/B.
+  final en = Get.locale?.languageCode == 'en';
+  if (n >= 1e9) return short(n / 1e9, en ? 'B' : 'M');
+  if (n >= 1e6) return short(n / 1e6, en ? 'M' : 'jt');
+  if (n >= 1e3) return '${(n / 1e3).round()}${en ? 'K' : 'rb'}';
   return AppFormat.digits(n);
 }
 
@@ -156,7 +159,7 @@ class ShareSummaryCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Ringkasan keuangan', style: onBrand),
+                      Text('Ringkasan keuangan'.tr, style: onBrand),
                       const SizedBox(height: AppSpacing.s4),
                       Text(AppFormat.monthYear(data.month), style: t.headlineMedium?.copyWith(color: c.onBrand)),
                     ],
@@ -198,7 +201,7 @@ class ShareSummaryCard extends StatelessWidget {
               children: [
                 const ShareAppMark(size: 32, showName: false),
                 const SizedBox(width: AppSpacing.s8),
-                Text('Dicatat dengan Wister Lite', style: onBrand),
+                Text('Dicatat dengan Wister Lite'.tr, style: onBrand),
               ],
             ),
           ],
@@ -238,9 +241,9 @@ class ShareFeedSlide extends StatelessWidget {
         final small = t.labelMedium?.copyWith(color: c.onBrand);
         final (title, body) = switch (index) {
           0 => (null, _cover(context)),
-          1 => ('Ke mana uangnya pergi?', _categories(context)),
-          2 => ('Masuk vs keluar', _cashflow(context)),
-          _ => ('Anggaran bulan ini', _budgets(context, index - 3)),
+          1 => ('Ke mana uangnya pergi?'.tr, _categories(context)),
+          2 => ('Masuk vs keluar'.tr, _cashflow(context)),
+          _ => ('Anggaran bulan ini'.tr, _budgets(context, index - 3)),
         };
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -257,11 +260,14 @@ class ShareFeedSlide extends StatelessWidget {
                 Expanded(
                   child: switch (index) {
                     0 => const SizedBox.shrink(),
-                    _ when index == count - 1 => Text('Dicatat dengan Wister Lite', style: small),
+                    _ when index == count - 1 => Text('Dicatat dengan Wister Lite'.tr, style: small),
                     _ => Text('Wister Lite', style: small),
                   },
                 ),
-                Text(index == 0 ? 'Geser →   ${index + 1}/$count' : '${index + 1}/$count', style: small),
+                Text(
+                  index == 0 ? 'Geser →   @page/@total'.trParams({'page': '${index + 1}', 'total': '$count'}) : '${index + 1}/$count',
+                  style: small,
+                ),
               ],
             ),
           ],
@@ -278,7 +284,7 @@ class ShareFeedSlide extends StatelessWidget {
       children: [
         const Align(alignment: AlignmentDirectional.centerStart, child: ShareAppMark(size: 40)),
         const SizedBox(height: AppSpacing.s16),
-        Text('Ringkasan keuangan', style: t.labelLarge?.copyWith(color: c.onBrand)),
+        Text('Ringkasan keuangan'.tr, style: t.labelLarge?.copyWith(color: c.onBrand)),
         Text('${AppFormat.months[data.month.month - 1]} ${data.month.year}', style: t.headlineMedium?.copyWith(color: c.onBrand)),
         // Dompi jadi fokus sampul; disembunyikan saat tekor (aturan maskot).
         Expanded(
@@ -338,19 +344,21 @@ class ShareFeedSlide extends StatelessWidget {
     );
 
     final balance = data.balance;
+    // Bukan `.tr`: key 'Masuk'/'Keluar' sudah berarti masuk/keluar akun.
+    final en = Get.locale?.languageCode == 'en';
     return _WhiteCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          bar('Masuk', data.income, c.incomeFill),
+          bar(en ? 'In' : 'Masuk', data.income, c.incomeFill),
           const SizedBox(height: AppSpacing.s20),
-          bar('Keluar', data.expense, c.expenseFill),
+          bar(en ? 'Out' : 'Keluar', data.expense, c.expenseFill),
           const Spacer(),
           Divider(color: c.outlineVariant, height: AppSpacing.s24),
           Row(
             children: [
               Expanded(
-                child: Text('Selisih', style: t.titleSmall?.copyWith(color: c.ink)),
+                child: Text('Selisih'.tr, style: t.titleSmall?.copyWith(color: c.ink)),
               ),
               Text(
                 hideAmounts ? 'Rp •••' : '${balance < 0 ? AppFormat.minus : ''}${AppFormat.rupiah(balance)}',
@@ -374,7 +382,10 @@ class ShareFeedSlide extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('$safe dari ${data.budgets.length} anggaran aman', style: t.titleMedium?.copyWith(color: c.ink)),
+          Text(
+            '@safe dari @total anggaran aman'.trParams({'safe': '$safe', 'total': '${data.budgets.length}'}),
+            style: t.titleMedium?.copyWith(color: c.ink),
+          ),
           const SizedBox(height: AppSpacing.s12),
           for (final (i, b) in rows.indexed) ...[
             if (i > 0) const SizedBox(height: AppSpacing.s8),
@@ -536,7 +547,7 @@ class _Total extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Total pengeluaran', style: context.text.labelMedium?.copyWith(color: c.inkMuted)),
+        Text('Total pengeluaran'.tr, style: context.text.labelMedium?.copyWith(color: c.inkMuted)),
         Text(_money(data.expense, hideAmounts), style: AppTypography.amountLarge.copyWith(color: c.ink)),
       ],
     );
@@ -571,7 +582,7 @@ class _NoExpense extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-    child: Text('Belum ada pengeluaran bulan ini.', style: context.text.bodyMedium?.copyWith(color: context.colors.inkMuted)),
+    child: Text('Belum ada pengeluaran bulan ini.'.tr, style: context.text.bodyMedium?.copyWith(color: context.colors.inkMuted)),
   );
 }
 

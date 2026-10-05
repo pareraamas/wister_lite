@@ -7,7 +7,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wister_lite/app/config/app_env.dart';
 
-/// Iklan video sela (interstitial), maksimal [dailyLimit] kali sehari.
+/// Iklan video sela (interstitial), paling cepat sekali tiap [minGap].
 ///
 /// Iklan hanya tampil bila user menyalakannya di Profil; itulah "harga"
 /// fitur sinkronisasi. SDK AdMob baru diinisialisasi setelah dinyalakan.
@@ -16,10 +16,8 @@ class AdService extends GetxService {
 
   final SharedPreferences _prefs;
 
-  static const dailyLimit = 2;
-
-  /// Jeda minimal antar-iklan agar dua jatah tidak habis berturut-turut.
-  static const minGap = Duration(minutes: 30);
+  /// Jeda minimal antar-iklan.
+  static const minGap = Duration(hours: 2);
 
   static const _enabledKey = 'ads_enabled';
   static const _dayKey = 'ads_day';
@@ -61,11 +59,11 @@ class AdService extends GetxService {
   }
 
   /// Dipanggil di jeda alami (mis. setelah transaksi tersimpan). Diam saja
-  /// bila mati, jatah habis, terlalu dekat dengan iklan sebelumnya, atau
+  /// bila mati, terlalu dekat dengan iklan sebelumnya, atau
   /// iklan belum termuat.
   void maybeShow() {
     _rollDay();
-    if (!enabled.value || shownToday.value >= dailyLimit) return;
+    if (!enabled.value) return;
     final last = DateTime.tryParse(_prefs.getString(_lastKey) ?? '');
     if (last != null && DateTime.now().difference(last) < minGap) return;
     final ad = _ad;
@@ -84,6 +82,17 @@ class AdService extends GetxService {
       },
     );
     ad.show();
+  }
+
+  /// Sisa waktu sampai iklan berikutnya boleh tampil; `null` bila iklan mati.
+  /// [Duration.zero] berarti iklan tampil di jeda alami berikutnya.
+  Duration? untilNext() {
+    if (!enabled.value) return null;
+    _rollDay();
+    final now = DateTime.now();
+    final last = DateTime.tryParse(_prefs.getString(_lastKey) ?? '');
+    final left = (last?.add(minGap) ?? now).difference(now);
+    return left.isNegative ? Duration.zero : left;
   }
 
   Future<void> _start() async {
@@ -111,7 +120,7 @@ class AdService extends GetxService {
   }
 
   void _load() {
-    if (!_sdkReady || _loading || _ad != null || !enabled.value || shownToday.value >= dailyLimit) return;
+    if (!_sdkReady || _loading || _ad != null || !enabled.value) return;
     _loading = true;
     InterstitialAd.load(
       adUnitId: _unitId,
@@ -139,7 +148,7 @@ class AdService extends GetxService {
     _prefs.setString(_lastKey, DateTime.now().toIso8601String());
   }
 
-  /// Jatah kembali penuh setiap ganti tanggal (waktu lokal).
+  /// Hitungan iklan hari ini diulang setiap ganti tanggal (waktu lokal).
   void _rollDay() {
     final now = DateTime.now();
     final today = '${now.year}-${now.month}-${now.day}';

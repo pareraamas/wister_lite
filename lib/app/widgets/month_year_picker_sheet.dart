@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:wister_lite/app/theme/app_theme.dart';
 import 'package:wister_lite/app/ui/ui.dart';
 
@@ -29,7 +30,7 @@ class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
   Widget build(BuildContext context) {
     final c = context.colors;
     return AppSheet(
-      title: 'Pilih bulan',
+      title: 'Pilih bulan'.tr,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -38,13 +39,13 @@ class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
             children: [
               IconButton(
                 onPressed: () => setState(() => _year--),
-                tooltip: 'Tahun sebelumnya',
+                tooltip: 'Tahun sebelumnya'.tr,
                 icon: const Icon(AppIcons.caretLeft),
               ),
               Text('$_year', style: context.text.titleLarge?.copyWith(fontFeatures: AppTypography.tabular)),
               IconButton(
                 onPressed: () => setState(() => _year++),
-                tooltip: 'Tahun berikutnya',
+                tooltip: 'Tahun berikutnya'.tr,
                 icon: const Icon(AppIcons.caretRight),
               ),
             ],

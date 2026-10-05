@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../theme/app_theme.dart';
 import 'app_icons.dart';
@@ -34,14 +35,14 @@ class MonthSwitcher extends StatelessWidget {
       children: [
         IconButton(
           onPressed: onPrev,
-          tooltip: 'Bulan sebelumnya',
+          tooltip: 'Bulan sebelumnya'.tr,
           iconSize: 20,
           visualDensity: VisualDensity.compact,
-          icon: const Icon(AppIcons.caretLeft, semanticLabel: 'Bulan sebelumnya'),
+          icon: Icon(AppIcons.caretLeft, semanticLabel: 'Bulan sebelumnya'.tr),
         ),
         Semantics(
           button: onTap != null,
-          label: 'Bulan aktif ${AppFormat.monthYear(month)}',
+          label: 'Bulan aktif @month'.trParams({'month': AppFormat.monthYear(month)}),
           excludeSemantics: true,
           child: Material(
             color: c.surfaceContainerLow,
@@ -82,10 +83,10 @@ class MonthSwitcher extends StatelessWidget {
         ),
         IconButton(
           onPressed: onNext,
-          tooltip: 'Bulan berikutnya',
+          tooltip: 'Bulan berikutnya'.tr,
           iconSize: 20,
           visualDensity: VisualDensity.compact,
-          icon: const Icon(AppIcons.caretRight, semanticLabel: 'Bulan berikutnya'),
+          icon: Icon(AppIcons.caretRight, semanticLabel: 'Bulan berikutnya'.tr),
         ),
       ],
     );

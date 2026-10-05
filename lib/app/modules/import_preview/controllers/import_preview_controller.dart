@@ -52,7 +52,7 @@ class ImportPreviewController extends GetxController {
       Get.back(result: plan.expenses.length);
     } catch (_) {
       isSaving.value = false;
-      showAppSnackBar('Gagal menyimpan. Tidak ada data yang berubah.');
+      showAppSnackBar('Gagal menyimpan. Tidak ada data yang berubah.'.tr);
     }
   }
 
@@ -60,7 +60,7 @@ class ImportPreviewController extends GetxController {
     try {
       await Get.find<ShareService>().shareExport(TransactionExport.template(), origin: origin);
     } catch (_) {
-      showAppSnackBar('Gagal membagikan template.');
+      showAppSnackBar('Gagal membagikan template.'.tr);
     }
   }
 }

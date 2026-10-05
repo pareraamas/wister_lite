@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../theme/app_theme.dart';
 import 'app_format.dart';
@@ -54,8 +55,8 @@ class AmountText extends StatelessWidget {
     final p =
         prefix ??
         switch (kind) {
-          AmountKind.income => 'Pemasukan',
-          AmountKind.expense => 'Pengeluaran',
+          AmountKind.income => 'Pemasukan'.tr,
+          AmountKind.expense => 'Pengeluaran'.tr,
           AmountKind.neutral => null,
         };
     return [?p, '$minus$spoken'].join(' ');

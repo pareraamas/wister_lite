@@ -120,9 +120,9 @@ class TransactionHistoryController extends GetxController {
     items.removeWhere((e) => e.id == expense.id);
     try {
       await _expenseRepository.deleteExpense(expense.id!);
-      showAppSnackBar('Transaksi dihapus');
+      showAppSnackBar('Transaksi dihapus'.tr);
     } catch (_) {
-      showAppSnackBar('Gagal menghapus transaksi. Coba lagi, ya.');
+      showAppSnackBar('Gagal menghapus transaksi. Coba lagi, ya.'.tr);
     }
     MainNavController.refreshAll();
   }

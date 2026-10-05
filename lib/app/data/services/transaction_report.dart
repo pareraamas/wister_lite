@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:wister_lite/app/data/models/expense.dart';
 import 'package:wister_lite/app/ui/app_format.dart';
 
@@ -11,10 +12,10 @@ class ReportPeriod {
   bool get isAllTime => month == null;
 
   /// "September 2026" / "Semua transaksi".
-  String get label => month == null ? 'Semua transaksi' : AppFormat.monthYear(month!);
+  String get label => month == null ? 'Semua transaksi'.tr : AppFormat.monthYear(month!);
 
   /// Bagian nama file: "2026-09" / "semua".
-  String get fileStamp => month == null ? 'semua' : '${month!.year}-${month!.month.toString().padLeft(2, '0')}';
+  String get fileStamp => month == null ? 'semua'.tr : '${month!.year}-${month!.month.toString().padLeft(2, '0')}';
 }
 
 /// Total per kategori dalam satu periode.
@@ -38,7 +39,7 @@ class TransactionSummary {
     var income = 0.0;
     var expense = 0.0;
     for (final e in ordered) {
-      final label = e.category?.label ?? 'Tanpa kategori';
+      final label = e.category?.label ?? 'Tanpa kategori'.tr;
       final total = byCategory.putIfAbsent(e.type, () => CategoryTotal(label, e.category?.colorValue));
       if (e.transactionType == 'income') {
         income += e.price;

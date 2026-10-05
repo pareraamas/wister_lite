@@ -1,0 +1,66 @@
+/// Terjemahan Inggris untuk form transaksi, pemilih kategori, dan kelola/buat kategori.
+const Map<String, String> enForms = {
+  // Form transaksi
+  'Tambah Pemasukan': 'Add Income',
+  'Tambah Pengeluaran': 'Add Expense',
+  'Ubah Pemasukan': 'Edit Income',
+  'Ubah Pengeluaran': 'Edit Expense',
+  'Masukkan nominal dulu': 'Enter an amount first',
+  'Pilih kategori': 'Pick a category',
+  'Pemasukan tersimpan': 'Income saved',
+  'Pengeluaran tersimpan': 'Expense saved',
+  'Urungkan': 'Undo',
+  'Gagal menyimpan. Coba lagi, ya.': "Couldn't save. Please try again.",
+  'Perubahan tersimpan': 'Changes saved',
+  'Gagal menyimpan perubahan. Coba lagi, ya.': "Couldn't save your changes. Please try again.",
+  'Transaksi tidak ditemukan': 'Transaction not found',
+  'Gagal memuat transaksi': "Couldn't load the transaction",
+  'Tutup': 'Close',
+  'Hapus transaksi': 'Delete transaction',
+  'Hapus transaksi ini?': 'Delete this transaction?',
+  'Catatan ini akan dihapus permanen dan tidak bisa dikembalikan.': "This entry will be deleted for good and can't be restored.",
+  'Transaksi dihapus': 'Transaction deleted',
+  'Gagal menghapus transaksi. Coba lagi, ya.': "Couldn't delete the transaction. Please try again.",
+  'Keluar': 'Out',
+  'Masuk': 'In',
+  'Nominal': 'Amount',
+  'Tambah catatan': 'Add a note',
+  'Semua': 'All',
+  'Tanggal @date, ketuk untuk mengubah': 'Date @date, tap to change',
+  'Simpan': 'Save',
+  'Tersimpan!': 'Saved!',
+
+  // Sheet pilih kategori
+  'Buat baru': 'New',
+  'Kelola kategori': 'Manage categories',
+
+  // Buat / ubah kategori
+  'Beri nama kategorinya dulu': 'Give your category a name first',
+  'Kategori diperbarui': 'Category updated',
+  'Kategori "@name" siap dipakai': 'Category "@name" is ready to use',
+  'Gagal menyimpan kategori. Coba lagi, ya.': "Couldn't save the category. Please try again.",
+  'Kategori ini masih dipakai @n transaksi. Pindahkan dulu transaksinya, ya.':
+      'This category is still used by @n transactions. Move them to another category first.',
+  'Kategori dihapus': 'Category deleted',
+  'Gagal menghapus kategori. Coba lagi, ya.': "Couldn't delete the category. Please try again.",
+  'Ubah Kategori': 'Edit Category',
+  'Buat Kategori': 'New Category',
+  'Hapus kategori': 'Delete category',
+  'Nama kategori': 'Category name',
+  'Misal: Jajan': 'E.g. Snacks',
+  'Warna': 'Color',
+  'Ikon': 'Icon',
+  'Simpan perubahan': 'Save changes',
+  'Simpan kategori': 'Save category',
+  'Hapus kategori ini?': 'Delete this category?',
+  'Kategori "@name" akan dihapus. Kategori yang masih dipakai transaksi tidak bisa dihapus.':
+      'Category "@name" will be deleted. Categories still used by transactions can\'t be deleted.',
+  'Pratinjau ikon kategori': 'Category icon preview',
+  'Warna @n': 'Color @n',
+  'Ikon @name': '@name icon',
+
+  // Kelola kategori
+  'Kelola Kategori': 'Manage Categories',
+  'Buat kategori': 'New category',
+  'Ubah': 'Edit',
+};

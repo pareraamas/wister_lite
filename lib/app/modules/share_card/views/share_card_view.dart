@@ -14,7 +14,7 @@ class ShareCardView extends GetView<ShareCardController> {
   Widget build(BuildContext context) {
     final c = context.colors;
     return Scaffold(
-      appBar: AppBar(title: const Text('Bagikan Ringkasan')),
+      appBar: AppBar(title: Text('Bagikan Ringkasan'.tr)),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const SkeletonList(itemCount: 1, shape: SkeletonShape.card, padding: EdgeInsets.all(AppSpacing.page));
@@ -33,8 +33,11 @@ class ShareCardView extends GetView<ShareCardController> {
                   // Pratinjau diperkecil agar muat; gambar tetap diekspor di ukuran penuh.
                   child: Semantics(
                     label: format == ShareCardFormat.story
-                        ? 'Pratinjau gambar Story ringkasan ${AppFormat.monthYear(controller.month)}'
-                        : 'Pratinjau carousel ${controller.slideCount} gambar ringkasan ${AppFormat.monthYear(controller.month)}',
+                        ? 'Pratinjau gambar Story ringkasan @month'.trParams({'month': AppFormat.monthYear(controller.month)})
+                        : 'Pratinjau carousel @n gambar ringkasan @month'.trParams({
+                            'n': '${controller.slideCount}',
+                            'month': AppFormat.monthYear(controller.month),
+                          }),
                     image: true,
                     excludeSemantics: true,
                     child: format == ShareCardFormat.story
@@ -83,7 +86,7 @@ class ShareCardView extends GetView<ShareCardController> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.page, 0, AppSpacing.page, AppSpacing.s12),
                   child: Text(
-                    'Unggah ${controller.slideCount} gambar sekaligus sebagai carousel. Geser untuk melihat semua.',
+                    'Unggah @n gambar sekaligus sebagai carousel. Geser untuk melihat semua.'.trParams({'n': '${controller.slideCount}'}),
                     textAlign: TextAlign.center,
                     style: context.text.bodySmall?.copyWith(color: c.inkMuted),
                   ),
@@ -101,8 +104,8 @@ class ShareCardView extends GetView<ShareCardController> {
               SwitchListTile(
                 value: controller.hideAmounts.value,
                 onChanged: (v) => controller.hideAmounts.value = v,
-                title: const Text('Sembunyikan nominal'),
-                subtitle: Text('Hanya persentase yang tampil', style: context.text.bodySmall?.copyWith(color: c.inkMuted)),
+                title: Text('Sembunyikan nominal'.tr),
+                subtitle: Text('Hanya persentase yang tampil'.tr, style: context.text.bodySmall?.copyWith(color: c.inkMuted)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
               ),
               Padding(
@@ -111,7 +114,7 @@ class ShareCardView extends GetView<ShareCardController> {
                   builder: (context) => FilledButton.icon(
                     onPressed: controller.isSharing.value ? null : () => controller.share(origin: _originOf(context)),
                     icon: const Icon(AppIcons.shareNetwork),
-                    label: Text(controller.imageCount > 1 ? 'Bagikan ${controller.imageCount} gambar' : 'Bagikan gambar'),
+                    label: Text(controller.imageCount > 1 ? 'Bagikan @n gambar'.trParams({'n': '${controller.imageCount}'}) : 'Bagikan gambar'.tr),
                   ),
                 ),
               ),

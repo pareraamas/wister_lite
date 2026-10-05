@@ -7,7 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wister_lite/app/data/repositories/expense_repository.dart';
+import 'package:wister_lite/app/data/services/settings_service.dart';
 import 'package:wister_lite/app/routes/app_pages.dart';
 import 'package:wister_lite/app/theme/app_theme.dart';
 import 'package:wister_lite/app/ults/clock.dart';
@@ -102,6 +104,8 @@ Future<FakeExpenseRepository> pumpScreen(
   addTearDown(() => Clock.now = DateTime.now);
   final repo = repository ?? repositoryFor(screen.data);
   Get.put<ExpenseRepository>(repo, permanent: true);
+  SharedPreferences.setMockInitialValues({});
+  Get.put<SettingsService>(SettingsService(await SharedPreferences.getInstance()), permanent: true);
 
   tester.view.physicalSize = device.size * 2;
   tester.view.devicePixelRatio = 2;

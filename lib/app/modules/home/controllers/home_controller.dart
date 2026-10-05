@@ -7,7 +7,7 @@ import 'package:wister_lite/app/data/models/expense.dart';
 import 'package:wister_lite/app/data/repositories/expense_repository.dart';
 import 'package:wister_lite/app/modules/main_nav/controllers/main_nav_controller.dart';
 import 'package:wister_lite/app/routes/app_pages.dart';
-import 'package:wister_lite/app/theme/app_theme.dart';
+import 'package:wister_lite/app/data/services/settings_service.dart';
 import 'package:wister_lite/app/ui/budget_progress.dart';
 import 'package:wister_lite/app/widgets/app_snackbar.dart';
 
@@ -41,19 +41,15 @@ class HomeController extends GetxController {
   /// Semua transaksi hari ini (terbaru dulu); view menampilkan [todayLimit] pertama.
   final todayExpenses = <Expense>[].obs;
 
-  /// Pilihan tema & bahasa dari menu "lainnya" di header Beranda.
-  final themeMode = AppTheme.mode.obs;
-  final locale = (Get.locale ?? const Locale('id', 'ID')).obs;
+  /// Pilihan tema & bahasa dari menu "lainnya" di header Beranda (tersimpan lokal).
+  final _settings = Get.find<SettingsService>();
 
-  void changeThemeMode(ThemeMode mode) {
-    themeMode.value = mode;
-    Get.changeThemeMode(mode);
-  }
+  Rx<ThemeMode> get themeMode => _settings.themeMode;
+  Rx<Locale> get locale => _settings.locale;
 
-  void changeLocale(Locale value) {
-    locale.value = value;
-    Get.updateLocale(value);
-  }
+  void changeThemeMode(ThemeMode mode) => _settings.setThemeMode(mode);
+
+  void changeLocale(Locale value) => _settings.setLocale(value);
 
   /// Bulan yang diringkas di kartu Masuk/Keluar.
   DateTime get currentMonth => DateTime(Clock.now().year, Clock.now().month);
@@ -88,10 +84,10 @@ class HomeController extends GetxController {
   /// Sapaan sesuai jam (tanpa nama; aplikasi tidak menyimpan nama user).
   String get greeting {
     final h = Clock.now().hour;
-    if (h < 11) return 'Selamat pagi!';
-    if (h < 15) return 'Selamat siang!';
-    if (h < 18) return 'Selamat sore!';
-    return 'Selamat malam!';
+    if (h < 11) return 'Selamat pagi!'.tr;
+    if (h < 15) return 'Selamat siang!'.tr;
+    if (h < 18) return 'Selamat sore!'.tr;
+    return 'Selamat malam!'.tr;
   }
 
   Future<void> openCreate() async {
@@ -125,9 +121,9 @@ class HomeController extends GetxController {
     todayExpenses.removeWhere((e) => e.id == expense.id);
     try {
       await _expenseRepository.deleteExpense(expense.id!);
-      showAppSnackBar('Transaksi dihapus');
+      showAppSnackBar('Transaksi dihapus'.tr);
     } catch (_) {
-      showAppSnackBar('Gagal menghapus transaksi. Coba lagi, ya.');
+      showAppSnackBar('Gagal menghapus transaksi. Coba lagi, ya.'.tr);
     }
     MainNavController.refreshAll();
   }

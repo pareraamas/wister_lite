@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:wister_lite/app/data/services/transaction_csv.dart';
 import 'package:wister_lite/app/data/services/transaction_report.dart';
 import 'package:wister_lite/app/theme/tokens/app_colors.dart';
@@ -33,7 +34,7 @@ abstract final class TransactionPdf {
     final soft = col(c.surfaceContainerLow);
 
     final doc = pw.Document(
-      title: 'Laporan Keuangan ${period.label}',
+      title: 'Laporan Keuangan @period'.trParams({'period': period.label}),
       author: 'Wister Lite',
       theme: pw.ThemeData.withFont(base: regular, bold: bold),
     );
@@ -71,35 +72,35 @@ abstract final class TransactionPdf {
             ? pw.SizedBox()
             : pw.Padding(
                 padding: const pw.EdgeInsets.only(bottom: 12),
-                child: pw.Text('Laporan Keuangan · ${period.label}', style: st(9, color: muted)),
+                child: pw.Text('Laporan Keuangan · @period'.trParams({'period': period.label}), style: st(9, color: muted)),
               ),
         footer: (ctx) => pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('Dibuat dengan Wister Lite · ${TransactionCsv.formatDate(at)}', style: st(8, color: muted)),
-            pw.Text('Halaman ${ctx.pageNumber}/${ctx.pagesCount}', style: st(8, color: muted)),
+            pw.Text('Dibuat dengan Wister Lite · @date'.trParams({'date': TransactionCsv.formatDate(at)}), style: st(8, color: muted)),
+            pw.Text('Halaman @page/@total'.trParams({'page': '${ctx.pageNumber}', 'total': '${ctx.pagesCount}'}), style: st(8, color: muted)),
           ],
         ),
         build: (ctx) => [
-          pw.Text('Laporan Keuangan', style: st(22, strong: true, color: brand)),
+          pw.Text('Laporan Keuangan'.tr, style: st(22, strong: true, color: brand)),
           pw.SizedBox(height: 2),
           pw.Text(period.label, style: st(12, color: muted)),
           pw.SizedBox(height: 16),
           pw.Row(
             children: [
-              stat('Pemasukan', '+${AppFormat.rupiah(summary.income)}', income),
+              stat('Pemasukan'.tr, '+${AppFormat.rupiah(summary.income)}', income),
               pw.SizedBox(width: 8),
-              stat('Pengeluaran', '${AppFormat.minus}${AppFormat.rupiah(summary.expense)}', expense),
+              stat('Pengeluaran'.tr, '${AppFormat.minus}${AppFormat.rupiah(summary.expense)}', expense),
               pw.SizedBox(width: 8),
-              stat('Selisih', signed(summary.balance), summary.balance < 0 ? expense : ink),
+              stat('Selisih'.tr, signed(summary.balance), summary.balance < 0 ? expense : ink),
             ],
           ),
           if (categories.isNotEmpty) ...[
             pw.SizedBox(height: 20),
-            pw.Text('Pengeluaran per kategori', style: st(12, strong: true)),
+            pw.Text('Pengeluaran per kategori'.tr, style: st(12, strong: true)),
             pw.SizedBox(height: 8),
             pw.TableHelper.fromTextArray(
-              headers: ['Kategori', 'Jumlah', '%'],
+              headers: ['Kategori'.tr, 'Jumlah'.tr, '%'],
               data: [
                 for (final cat in categories) [cat.label, AppFormat.rupiah(cat.expense), '${(summary.shareOf(cat.expense) * 100).round()}%'],
               ],
@@ -112,10 +113,10 @@ abstract final class TransactionPdf {
             ),
           ],
           pw.SizedBox(height: 20),
-          pw.Text('Daftar transaksi (${summary.expenses.length})', style: st(12, strong: true)),
+          pw.Text('Daftar transaksi (@n)'.trParams({'n': '${summary.expenses.length}'}), style: st(12, strong: true)),
           pw.SizedBox(height: 8),
           pw.TableHelper.fromTextArray(
-            headers: ['Tanggal', 'Nama', 'Kategori', 'Jumlah'],
+            headers: ['Tanggal'.tr, 'Nama'.tr, 'Kategori'.tr, 'Jumlah'.tr],
             data: [
               for (final e in summary.expenses)
                 [

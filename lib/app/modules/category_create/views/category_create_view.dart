@@ -13,9 +13,9 @@ class CategoryCreateView extends GetView<CategoryCreateController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(controller.isEditing ? 'Ubah Kategori' : 'Buat Kategori'),
+        title: Text((controller.isEditing ? 'Ubah Kategori' : 'Buat Kategori').tr),
         actions: [
-          if (controller.isEditing) IconButton(icon: const Icon(AppIcons.trash), tooltip: 'Hapus kategori', onPressed: () => _confirmDelete(context)),
+          if (controller.isEditing) IconButton(icon: const Icon(AppIcons.trash), tooltip: 'Hapus kategori'.tr, onPressed: () => _confirmDelete(context)),
           const SizedBox(width: AppSpacing.s4),
         ],
       ),
@@ -35,18 +35,18 @@ class CategoryCreateView extends GetView<CategoryCreateController> {
                       maxLength: CategoryCreateController.maxLabelLength,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: InputDecoration(
-                        labelText: 'Nama kategori',
-                        hintText: 'Misal: Jajan',
-                        errorText: controller.labelError.value,
+                        labelText: 'Nama kategori'.tr,
+                        hintText: 'Misal: Jajan'.tr,
+                        errorText: controller.labelError.value?.tr,
                         prefixIcon: const Icon(AppIcons.tag),
                       ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s16),
-                  _Label('Warna'),
+                  _Label('Warna'.tr),
                   const _ColorPicker(),
                   const SizedBox(height: AppSpacing.section),
-                  _Label('Ikon'),
+                  _Label('Ikon'.tr),
                   const _IconPicker(),
                 ],
               ),
@@ -58,7 +58,7 @@ class CategoryCreateView extends GetView<CategoryCreateController> {
                 child: Obx(
                   () => FilledButton(
                     onPressed: controller.isLoading.value ? null : controller.saveCategory,
-                    child: Text(controller.isEditing ? 'Simpan perubahan' : 'Simpan kategori'),
+                    child: Text((controller.isEditing ? 'Simpan perubahan' : 'Simpan kategori').tr),
                   ),
                 ),
               ),
@@ -72,8 +72,10 @@ class CategoryCreateView extends GetView<CategoryCreateController> {
   Future<void> _confirmDelete(BuildContext context) async {
     final ok = await ConfirmDialog.show(
       context,
-      title: 'Hapus kategori ini?',
-      message: 'Kategori "${controller.editingCategory!.label}" akan dihapus. Kategori yang masih dipakai transaksi tidak bisa dihapus.',
+      title: 'Hapus kategori ini?'.tr,
+      message: 'Kategori "@name" akan dihapus. Kategori yang masih dipakai transaksi tidak bisa dihapus.'.trParams({
+        'name': controller.editingCategory!.label,
+      }),
     );
     // Guard "masih dipakai" ada di controller, lengkap dengan pesan ramahnya.
     if (ok) await controller.deleteCategory();
@@ -105,7 +107,7 @@ class _Preview extends GetView<CategoryCreateController> {
       final color = controller.selectedColor.value;
       final icon = controller.selectedIcon.value;
       final name = controller.label.value.trim();
-      Widget blob = CategoryBlob(iconAsset: icon, color: color, size: CategoryBlobSize.large, semanticLabel: 'Pratinjau ikon kategori');
+      Widget blob = CategoryBlob(iconAsset: icon, color: color, size: CategoryBlobSize.large, semanticLabel: 'Pratinjau ikon kategori'.tr);
       if (!AppMotion.reduced(context)) {
         blob = blob
             .animate(key: ValueKey('${color.toARGB32()}|$icon'))
@@ -119,7 +121,7 @@ class _Preview extends GetView<CategoryCreateController> {
               SizedBox(height: 72, child: Center(child: blob)),
               const SizedBox(height: AppSpacing.s12),
               Text(
-                name.isEmpty ? 'Nama kategori' : name,
+                name.isEmpty ? 'Nama kategori'.tr : name,
                 textAlign: TextAlign.center,
                 style: context.text.titleLarge?.copyWith(color: name.isEmpty ? context.colors.inkMuted : null),
               ),
@@ -151,7 +153,7 @@ class _ColorPicker extends GetView<CategoryCreateController> {
                 return Semantics(
                   button: true,
                   selected: isSelected,
-                  label: 'Warna ${i + 1}',
+                  label: 'Warna @n'.trParams({'n': '${i + 1}'}),
                   excludeSemantics: true,
                   child: InkResponse(
                     onTap: () => controller.selectColor(color),
@@ -194,7 +196,7 @@ class _IconPicker extends GetView<CategoryCreateController> {
             Semantics(
               button: true,
               selected: icon == selectedIcon,
-              label: 'Ikon ${CategoryIcons.labelOf(icon)}',
+              label: 'Ikon @name'.trParams({'name': CategoryIcons.labelOf(icon).tr}),
               excludeSemantics: true,
               child: Material(
                 color: icon == selectedIcon ? c.brandContainer : c.surfaceContainerLow,

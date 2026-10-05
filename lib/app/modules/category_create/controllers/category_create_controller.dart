@@ -20,6 +20,7 @@ class CategoryCreateController extends GetxController {
   late final RxString selectedIcon;
 
   final isLoading = false.obs;
+  /// Kunci terjemahan pesan error nama; `.tr` saat ditampilkan.
   final labelError = RxnString();
   final label = ''.obs;
   final ExpenseRepository _repository = Get.find<ExpenseRepository>();
@@ -70,20 +71,20 @@ class CategoryCreateController extends GetxController {
       isLoading.value = true;
 
       if (isEditing) {
-        final updatedCategory = editingCategory!.copyWith(label: name, color: selectedColor.value, icon: selectedIcon.value);
+        final updatedCategory = editingCategory!.copyWith(label: name == editingCategory!.label ? null : name, color: selectedColor.value, icon: selectedIcon.value);
         await _repository.updateCategory(updatedCategory);
         MainNavController.refreshAll();
         Get.back(result: true);
-        showAppSnackBar('Kategori diperbarui');
+        showAppSnackBar('Kategori diperbarui'.tr);
       } else {
         final newCategory = Category.create(label: name, color: selectedColor.value, icon: selectedIcon.value);
         await _repository.insertCategory(newCategory);
         // Kembalikan kategori baru agar form transaksi bisa langsung memilihnya.
         Get.back(result: newCategory);
-        showAppSnackBar('Kategori "$name" siap dipakai');
+        showAppSnackBar('Kategori "@name" siap dipakai'.trParams({'name': name}));
       }
     } catch (e) {
-      showAppSnackBar('Gagal menyimpan kategori. Coba lagi, ya.');
+      showAppSnackBar('Gagal menyimpan kategori. Coba lagi, ya.'.tr);
     } finally {
       isLoading.value = false;
     }
@@ -100,15 +101,15 @@ class CategoryCreateController extends GetxController {
       // Guard tetap di sini (bukan hanya di view) agar transaksi tidak jadi yatim.
       final used = await usageCount();
       if (used > 0) {
-        showAppSnackBar('Kategori ini masih dipakai $used transaksi. Pindahkan dulu transaksinya, ya.');
+        showAppSnackBar('Kategori ini masih dipakai @n transaksi. Pindahkan dulu transaksinya, ya.'.trParams({'n': '$used'}));
         return;
       }
       await _repository.deleteCategory(editingCategory!.id);
       MainNavController.refreshAll();
       Get.back(result: true);
-      showAppSnackBar('Kategori dihapus');
+      showAppSnackBar('Kategori dihapus'.tr);
     } catch (e) {
-      showAppSnackBar('Gagal menghapus kategori. Coba lagi, ya.');
+      showAppSnackBar('Gagal menghapus kategori. Coba lagi, ya.'.tr);
     } finally {
       isLoading.value = false;
     }

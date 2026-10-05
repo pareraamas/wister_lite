@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../theme/app_theme.dart';
 import 'app_illustration.dart';
@@ -10,16 +11,19 @@ class ConfirmDialog extends StatelessWidget {
     super.key,
     required this.title,
     required this.message,
-    this.confirmLabel = 'Hapus',
-    this.cancelLabel = 'Batal',
+    this.confirmLabel,
+    this.cancelLabel,
     this.destructive = true,
     this.illustration,
   });
 
   final String title;
   final String message;
-  final String confirmLabel;
-  final String cancelLabel;
+  /// Null = "Hapus" (diterjemahkan).
+  final String? confirmLabel;
+
+  /// Null = "Batal" (diterjemahkan).
+  final String? cancelLabel;
 
   /// True: tombol konfirmasi berwarna bahaya (hapus). False: warna brand.
   final bool destructive;
@@ -32,8 +36,8 @@ class ConfirmDialog extends StatelessWidget {
     BuildContext context, {
     required String title,
     required String message,
-    String confirmLabel = 'Hapus',
-    String cancelLabel = 'Batal',
+    String? confirmLabel,
+    String? cancelLabel,
     bool destructive = true,
   }) async {
     final result = await showDialog<bool>(
@@ -73,7 +77,7 @@ class ConfirmDialog extends StatelessWidget {
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
                     style: TextButton.styleFrom(foregroundColor: c.ink, minimumSize: const Size(64, 52)),
-                    child: Text(cancelLabel),
+                    child: Text(cancelLabel ?? 'Batal'.tr),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.s12),
@@ -81,7 +85,7 @@ class ConfirmDialog extends StatelessWidget {
                   child: FilledButton(
                     onPressed: () => Navigator.of(context).pop(true),
                     style: destructive ? FilledButton.styleFrom(backgroundColor: c.danger, foregroundColor: c.onDanger) : null,
-                    child: Text(confirmLabel),
+                    child: Text(confirmLabel ?? 'Hapus'.tr),
                   ),
                 ),
               ],

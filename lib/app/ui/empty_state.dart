@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:get/get.dart';
 
 import '../theme/app_theme.dart';
 import 'app_illustration.dart';
@@ -19,30 +20,30 @@ class EmptyState extends StatelessWidget {
   /// Beranda: riwayat kosong.
   EmptyState.beranda({super.key, this.onAction, this.illustrationSize = 160})
     : illustration = AppIllustrations.emptyBeranda,
-      title = 'Belum ada catatan',
-      message = 'Yuk, catat pengeluaran pertamamu.',
-      actionLabel = 'Tambah';
+      title = 'Belum ada catatan'.tr,
+      message = 'Yuk, catat pengeluaran pertamamu.'.tr,
+      actionLabel = 'Tambah'.tr;
 
   /// Anggaran: belum ada budget bulan ini.
   EmptyState.anggaran({super.key, this.onAction, this.illustrationSize = 160})
     : illustration = AppIllustrations.emptyAnggaran,
-      title = 'Belum ada anggaran',
-      message = 'Belum ada anggaran bulan ini.',
-      actionLabel = 'Atur anggaran';
+      title = 'Belum ada anggaran'.tr,
+      message = 'Belum ada anggaran bulan ini.'.tr,
+      actionLabel = 'Atur anggaran'.tr;
 
   /// Statistik: belum ada transaksi bulan ini.
   EmptyState.statistik({super.key, this.onAction, this.illustrationSize = 160})
     : illustration = AppIllustrations.emptyStatistik,
-      title = 'Bulan ini masih bersih',
-      message = 'Belum ada transaksi untuk dihitung.',
-      actionLabel = 'Tambah transaksi';
+      title = 'Bulan ini masih bersih'.tr,
+      message = 'Belum ada transaksi untuk dihitung.'.tr,
+      actionLabel = 'Tambah transaksi'.tr;
 
   /// Kelola Kategori: belum ada kategori.
   EmptyState.kategori({super.key, this.onAction, this.illustrationSize = 160})
     : illustration = AppIllustrations.emptyKategori,
-      title = 'Kategorimu kosong',
-      message = 'Buat kategori agar catatanmu lebih rapi.',
-      actionLabel = 'Buat kategori';
+      title = 'Kategorimu kosong'.tr,
+      message = 'Buat kategori agar catatanmu lebih rapi.'.tr,
+      actionLabel = 'Buat kategori'.tr;
 
   final String illustration;
   final String title;

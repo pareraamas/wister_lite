@@ -101,14 +101,14 @@ class StatistikController extends GetxController {
         ? await _repository.getExpensesByDateRange(DateTime(2000), DateTime(2100))
         : await _repository.getExpensesForMonth(month);
     if (expenses.isEmpty) {
-      showAppSnackBar('Belum ada transaksi untuk diekspor.');
+      showAppSnackBar('Belum ada transaksi untuk diekspor.'.tr);
       return;
     }
     try {
       final file = await TransactionExport.build(format, expenses, period);
       await Get.find<ShareService>().shareExport(file, origin: origin);
     } catch (_) {
-      showAppSnackBar('Gagal mengekspor file. Coba lagi.');
+      showAppSnackBar('Gagal mengekspor file. Coba lagi.'.tr);
     }
   }
 
@@ -121,7 +121,7 @@ class StatistikController extends GetxController {
     try {
       picked = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: const ['csv', 'xlsx']);
     } catch (_) {
-      showAppSnackBar('Tidak bisa membuka pemilih file.');
+      showAppSnackBar('Tidak bisa membuka pemilih file.'.tr);
       return;
     }
     if (picked.isEmpty) return;
@@ -139,14 +139,14 @@ class StatistikController extends GetxController {
       );
       plan = importer.parse(rows);
     } catch (_) {
-      showAppSnackBar('File tidak bisa dibaca. Pastikan formatnya CSV atau Excel (.xlsx).');
+      showAppSnackBar('File tidak bisa dibaca. Pastikan formatnya CSV atau Excel (.xlsx).'.tr);
       return;
     }
 
     final imported = await Get.toNamed(Routes.IMPORT_PREVIEW, arguments: ImportPreviewArgs(file.name, plan));
     if (imported is int && imported > 0) {
       MainNavController.refreshAll();
-      showAppSnackBar('$imported transaksi berhasil diimpor.');
+      showAppSnackBar('@n transaksi berhasil diimpor.'.trParams({'n': '$imported'}));
     }
   }
 }
@@ -159,5 +159,5 @@ class DonutSlice {
   final double amount;
 
   bool get isOther => category == null;
-  String get label => category?.label ?? 'Lainnya';
+  String get label => category?.label ?? 'Lainnya'.tr;
 }

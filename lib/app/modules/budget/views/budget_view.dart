@@ -8,6 +8,7 @@ import 'package:wister_lite/app/ui/ui.dart';
 import 'package:wister_lite/app/widgets/month_year_picker_sheet.dart';
 
 import '../controllers/budget_controller.dart';
+import 'package:wister_lite/app/translations/tr_context.dart';
 
 class BudgetView extends GetView<BudgetController> {
   const BudgetView({super.key});
@@ -23,14 +24,14 @@ class BudgetView extends GetView<BudgetController> {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               PageAppBar(
-                title: 'Anggaran',
+                title: 'Anggaran'.tr,
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _monthSwitcher(context, month),
                     IconButton(
                       icon: const Icon(AppIcons.tag),
-                      tooltip: 'Kelola kategori',
+                      tooltip: 'Kelola kategori'.tr,
                       onPressed: () async {
                         await Get.toNamed(Routes.CATEGORY_LIST);
                         MainNavController.refreshAll();
@@ -91,13 +92,13 @@ class BudgetView extends GetView<BudgetController> {
               _RemainingCard(controller: controller),
               const SizedBox(height: AppSpacing.section),
               _SectionTitle(
-                'Kategori',
+                'Kategori'.trIn('section'),
                 trailing: without.isEmpty
                     ? null
                     : TextButton.icon(
                         onPressed: () => _openSheet(context, without.first),
                         icon: const Icon(AppIcons.plus, size: 18),
-                        label: const Text('Tambah'),
+                        label: Text('Tambah'.tr),
                       ),
               ),
               Card(
@@ -169,7 +170,10 @@ class _RemainingCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(over ? 'Lewat anggaran' : 'Sisa bulan ini', style: context.text.labelLarge?.copyWith(color: over ? c.danger : c.inkMuted)),
+                      Text(
+                        over ? 'Lewat anggaran'.tr : 'Sisa bulan ini'.tr,
+                        style: context.text.labelLarge?.copyWith(color: over ? c.danger : c.inkMuted),
+                      ),
                       const SizedBox(height: AppSpacing.s4),
                       FittedBox(
                         fit: BoxFit.scaleDown,
@@ -178,20 +182,20 @@ class _RemainingCard extends StatelessWidget {
                           remaining.abs(),
                           size: AmountSize.large,
                           color: over ? c.danger : c.ink,
-                          semanticsPrefix: over ? 'Lewat anggaran' : 'Sisa bulan ini',
+                          semanticsPrefix: over ? 'Lewat anggaran'.tr : 'Sisa bulan ini'.tr,
                         ),
                       ),
                     ],
                   ),
                 ),
                 // Dompi hanya di momen aman, tidak saat over-budget.
-                if (controller.allUnderPace) AppIllustration.dompi(DompiMood.bangga, size: 72, semanticLabel: 'Dompi bangga, semua anggaran aman'),
+                if (controller.allUnderPace) AppIllustration.dompi(DompiMood.bangga, size: 72, semanticLabel: 'Dompi bangga, semua anggaran aman'.tr),
               ],
             ),
             const SizedBox(height: AppSpacing.s12),
             // Penjelasan penanda pace lewat tooltip (ketuk bar), bukan caption permanen.
             Tooltip(
-              message: 'Garis tegak = posisi hari ini di bulan ini',
+              message: 'Garis tegak = posisi hari ini di bulan ini'.tr,
               triggerMode: TooltipTriggerMode.tap,
               excludeFromSemantics: true,
               child: BudgetProgress.fromAmounts(
@@ -225,9 +229,9 @@ class _BudgetTile extends StatelessWidget {
     final ratio = BudgetProgress.ratioOf(spent, budget);
     final status = BudgetProgress.statusOf(ratio, warningThreshold: context.components.budgetProgress.warningThreshold);
     final (statusText, statusColor) = switch (status) {
-      BudgetStatus.safe => ('Sisa ${AppFormat.rupiah(remaining)}', c.ink),
-      BudgetStatus.warning => ('Sisa ${AppFormat.rupiah(remaining)}', c.warning),
-      BudgetStatus.over => ('Lewat ${AppFormat.rupiah(remaining)}', c.danger),
+      BudgetStatus.safe => ('Sisa @amount'.trParams({'amount': AppFormat.rupiah(remaining)}), c.ink),
+      BudgetStatus.warning => ('Sisa @amount'.trParams({'amount': AppFormat.rupiah(remaining)}), c.warning),
+      BudgetStatus.over => ('Lewat @amount'.trParams({'amount': AppFormat.rupiah(remaining)}), c.danger),
     };
     return MergeSemantics(
       child: InkWell(
@@ -259,7 +263,7 @@ class _BudgetTile extends StatelessWidget {
                     const SizedBox(height: AppSpacing.s4),
                     ExcludeSemantics(
                       child: Text(
-                        '${AppFormat.rupiah(spent)} dari ${AppFormat.rupiah(budget)}',
+                        '@spent dari @budget'.trParams({'spent': AppFormat.rupiah(spent), 'budget': AppFormat.rupiah(budget)}),
                         style: context.text.bodySmall?.copyWith(color: c.inkMuted),
                       ),
                     ),
@@ -302,7 +306,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
   Future<void> _pickCategory() async {
     final picked = await AppSheet.show<Category>(
       context,
-      title: 'Pilih kategori',
+      title: 'Pilih kategori'.tr,
       child: _CategoryPicker(categories: _choices, selectedId: _category.id),
     );
     if (picked == null || !mounted) return;
@@ -317,11 +321,11 @@ class _BudgetSheetState extends State<_BudgetSheet> {
     final c = context.colors;
     final spent = widget.controller.spendingByCategory[_category.id] ?? 0;
     return AppSheet(
-      title: 'Anggaran ${_category.label}',
-      subtitle: 'Terpakai bulan ini ${AppFormat.rupiah(spent)}',
+      title: 'Anggaran @category'.trParams({'category': _category.label}),
+      subtitle: 'Terpakai bulan ini @amount'.trParams({'amount': AppFormat.rupiah(spent)}),
       leading: CategoryBlob(iconAsset: _category.icon, color: _category.color, size: CategoryBlobSize.large),
-      trailing: _choices.length > 1 ? TextButton(onPressed: _pickCategory, child: const Text('Ganti')) : null,
-      primaryLabel: 'Simpan anggaran',
+      trailing: _choices.length > 1 ? TextButton(onPressed: _pickCategory, child: Text('Ganti'.tr)) : null,
+      primaryLabel: 'Simpan anggaran'.tr,
       onPrimary: _amount > 0 ? () => _save(_amount.toDouble()) : null,
       child: SingleChildScrollView(
         child: Column(
@@ -331,7 +335,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
             Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: AmountText(_amount, size: AmountSize.display, color: _amount == 0 ? c.inkMuted : null, semanticsPrefix: 'Anggaran'),
+                child: AmountText(_amount, size: AmountSize.display, color: _amount == 0 ? c.inkMuted : null, semanticsPrefix: 'Anggaran'.tr),
               ),
             ),
             const SizedBox(height: AppSpacing.s16),
@@ -342,7 +346,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
                 onPressed: () => _save(0),
                 style: TextButton.styleFrom(foregroundColor: c.danger),
                 icon: const Icon(AppIcons.trash),
-                label: const Text('Hapus anggaran'),
+                label: Text('Hapus anggaran'.tr),
               ),
             ],
           ],

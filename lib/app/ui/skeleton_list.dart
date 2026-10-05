@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:get/get.dart';
 
 import '../theme/app_theme.dart';
 
@@ -23,13 +24,14 @@ class SkeletonList extends StatelessWidget {
     this.itemCount = 5,
     this.shape = SkeletonShape.tile,
     this.padding = const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-    this.semanticLabel = 'Memuat data',
+    this.semanticLabel,
   });
 
   final int itemCount;
   final SkeletonShape shape;
   final EdgeInsetsGeometry padding;
-  final String semanticLabel;
+  /// Null = "Memuat data" (diterjemahkan).
+  final String? semanticLabel;
 
   /// Satu putaran shimmer (1,2 detik).
   static final Duration period = AppMotion.long * 3;
@@ -57,7 +59,7 @@ class SkeletonList extends StatelessWidget {
           .shimmer(duration: period, curve: AppMotion.emphasized, color: c.surfaceContainerLowest.withValues(alpha: 0.7));
     }
 
-    return Semantics(label: semanticLabel, liveRegion: true, child: ExcludeSemantics(child: list));
+    return Semantics(label: semanticLabel ?? 'Memuat data'.tr, liveRegion: true, child: ExcludeSemantics(child: list));
   }
 }
 

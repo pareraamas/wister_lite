@@ -1,4 +1,5 @@
 import 'package:csv/csv.dart';
+import 'package:get/get.dart';
 import 'package:wister_lite/app/data/models/expense.dart';
 
 /// Format CSV transaksi. Header & isi kolom adalah kontrak: file hasil export
@@ -7,11 +8,14 @@ import 'package:wister_lite/app/data/models/expense.dart';
 /// Memakai `Csv.excel()` (pemisah `;` + BOM UTF-8) karena Excel berlokal
 /// Indonesia memakai `;` sebagai pemisah daftar; Google Sheets & Numbers
 /// mendeteksinya otomatis.
+///
+/// Header & jenis ikut bahasa aktif; versi Inggrisnya (Date, Type, Category,
+/// Name, Amount, Income, Expense) sudah dikenali `ImportColumn` & `parseType`.
 abstract final class TransactionCsv {
-  static const headers = ['Tanggal', 'Jenis', 'Kategori', 'Nama', 'Jumlah', 'ID'];
+  static List<String> get headers => ['Tanggal'.tr, 'Jenis'.tr, 'Kategori'.tr, 'Nama'.tr, 'Jumlah'.tr, 'ID'];
 
-  static const income = 'Pemasukan';
-  static const expense = 'Pengeluaran';
+  static String get income => 'Pemasukan'.tr;
+  static String get expense => 'Pengeluaran'.tr;
 
   static String encode(List<Expense> expenses) {
     final rows = <List<Object?>>[

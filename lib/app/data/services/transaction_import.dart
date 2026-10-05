@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:wister_lite/app/data/models/category_model.dart';
 import 'package:wister_lite/app/data/models/expense.dart';
 import 'package:wister_lite/app/data/models/expense_type.dart';
@@ -21,14 +22,21 @@ enum ImportColumn {
 }
 
 /// Satu baris yang gagal dibaca. [row] = nomor baris seperti di spreadsheet.
+///
+/// [message] adalah key terjemahan (teks Indonesia dengan `@value`), jadi
+/// [toString] selalu mengikuti bahasa aktif.
 class ImportIssue {
-  const ImportIssue(this.row, this.message);
+  const ImportIssue(this.row, this.message, [this.value = '']);
 
   final int row;
   final String message;
+  final String value;
 
   @override
-  String toString() => 'Baris $row: $message';
+  String toString() => 'Baris @row: @msg'.trParams({
+    'row': '$row',
+    'msg': message.trParams({'value': value}),
+  });
 }
 
 /// Hasil membaca file, belum disimpan. Ditampilkan di layar pratinjau.
@@ -60,7 +68,7 @@ class ImportPlan {
 /// - Duplikat dilewati: ID sama, atau tanggal (menit) + nama + jumlah + jenis sama.
 class TransactionImporter {
   TransactionImporter({required List<Category> categories, required List<Expense> existing, String Function()? newId})
-    : _categories = {for (final c in categories) _norm(c.label): c},
+    : _categories = {for (final c in categories) ...{_norm(c.storedLabel): c, _norm(c.label): c}},
       _existingIds = {for (final e in existing) ?e.id},
       _existingKeys = {for (final e in existing) _key(e)},
       _newId = newId ?? (() => const Uuid().v4());
@@ -99,12 +107,12 @@ class TransactionImporter {
 
       final date = parseDate(cell(ImportColumn.date));
       if (date == null) {
-        issues.add(ImportIssue(rowNumber, 'tanggal "${_show(cell(ImportColumn.date))}" tidak dikenali'));
+        issues.add(ImportIssue(rowNumber, 'tanggal "@value" tidak dikenali', _show(cell(ImportColumn.date))));
         continue;
       }
       final rawAmount = parseAmount(cell(ImportColumn.amount));
       if (rawAmount == null || rawAmount == 0) {
-        issues.add(ImportIssue(rowNumber, 'jumlah "${_show(cell(ImportColumn.amount))}" tidak valid'));
+        issues.add(ImportIssue(rowNumber, 'jumlah "@value" tidak valid', _show(cell(ImportColumn.amount))));
         continue;
       }
       final typeCell = cell(ImportColumn.type);
@@ -114,7 +122,7 @@ class TransactionImporter {
       } else {
         final parsed = parseType(typeCell);
         if (parsed == null) {
-          issues.add(ImportIssue(rowNumber, 'jenis "${_show(typeCell)}" harus Pemasukan atau Pengeluaran'));
+          issues.add(ImportIssue(rowNumber, 'jenis "@value" harus Pemasukan atau Pengeluaran', _show(typeCell)));
           continue;
         }
         type = parsed;
@@ -132,7 +140,7 @@ class TransactionImporter {
 
       final expense = Expense(
         id: id.isEmpty ? _newId() : id,
-        name: name.isEmpty ? category.label : name,
+        name: name.isEmpty ? category.storedLabel : name,
         type: category.id,
         category: category,
         transactionType: type,

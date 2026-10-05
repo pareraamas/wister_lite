@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:excel_community/excel_community.dart';
+import 'package:get/get.dart';
 import 'package:wister_lite/app/data/services/transaction_csv.dart';
 import 'package:wister_lite/app/data/services/transaction_report.dart';
 import 'package:wister_lite/app/theme/tokens/app_colors.dart';
@@ -11,8 +12,9 @@ import 'package:wister_lite/app/theme/tokens/app_colors.dart';
 /// Memakai `excel_community` karena `excel` masih terkunci di `archive` ^3,
 /// bentrok dengan `lottie` yang butuh `archive` ^4.
 abstract final class TransactionXlsx {
-  static const transactionsSheet = 'Transaksi';
-  static const summarySheet = 'Ringkasan';
+  /// Nama sheet ikut bahasa aktif; [decode] mengenali versi Indonesia & aktif.
+  static String get transactionsSheet => 'Transaksi'.tr;
+  static String get summarySheet => 'Ringkasan'.tr;
 
   static final _money = CustomNumericNumFormat(formatCode: '#,##0');
   static final _date = CustomDateTimeNumFormat(formatCode: 'yyyy-mm-dd hh:mm');
@@ -20,6 +22,7 @@ abstract final class TransactionXlsx {
   static Uint8List encode(TransactionSummary summary, ReportPeriod period) {
     final excel = Excel.createExcel();
     final defaultSheet = excel.getDefaultSheet()!;
+    final transactionsSheet = TransactionXlsx.transactionsSheet;
     excel.rename(defaultSheet, transactionsSheet);
     excel.setDefaultSheet(transactionsSheet);
 
@@ -52,15 +55,20 @@ abstract final class TransactionXlsx {
 
     // --- Ringkasan ---
     final sum = excel[summarySheet];
-    sum.appendRow([TextCellValue('Periode'), TextCellValue(period.label)]);
-    sum.appendRow([TextCellValue('Pemasukan'), _amount(summary.income)]);
-    sum.appendRow([TextCellValue('Pengeluaran'), _amount(summary.expense)]);
-    sum.appendRow([TextCellValue('Selisih'), _amount(summary.balance)]);
+    sum.appendRow([TextCellValue('Periode'.tr), TextCellValue(period.label)]);
+    sum.appendRow([TextCellValue('Pemasukan'.tr), _amount(summary.income)]);
+    sum.appendRow([TextCellValue('Pengeluaran'.tr), _amount(summary.expense)]);
+    sum.appendRow([TextCellValue('Selisih'.tr), _amount(summary.balance)]);
     for (var r = 1; r <= 3; r++) {
       _format(sum, 1, r, _money);
     }
     sum.appendRow([]);
-    _appendStyled(sum, [TextCellValue('Kategori'), TextCellValue('Pengeluaran'), TextCellValue('% pengeluaran'), TextCellValue('Pemasukan')], header);
+    _appendStyled(sum, [
+      TextCellValue('Kategori'.tr),
+      TextCellValue('Pengeluaran'.tr),
+      TextCellValue('% pengeluaran'.tr),
+      TextCellValue('Pemasukan'.tr),
+    ], header);
     for (final c in summary.categories) {
       sum.appendRow([
         TextCellValue(c.label),
@@ -84,7 +92,7 @@ abstract final class TransactionXlsx {
   /// `String`, `num`, `DateTime`, atau null. Dipakai oleh import.
   static List<List<Object?>> decode(Uint8List bytes) {
     final excel = Excel.decodeBytes(bytes);
-    final sheet = excel.tables[transactionsSheet] ?? (excel.tables.isEmpty ? null : excel.tables.values.first);
+    final sheet = excel.tables['Transaksi'] ?? excel.tables[transactionsSheet] ?? (excel.tables.isEmpty ? null : excel.tables.values.first);
     if (sheet == null) return const [];
     return [
       for (final row in sheet.rows) [for (final cell in row) _raw(cell?.value)],

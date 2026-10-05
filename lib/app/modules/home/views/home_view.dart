@@ -3,11 +3,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:wister_lite/app/data/models/category_model.dart';
 import 'package:wister_lite/app/data/models/expense.dart';
+import 'package:wister_lite/app/data/services/ad_service.dart';
 import 'package:wister_lite/app/theme/app_theme.dart';
 import 'package:wister_lite/app/ui/ui.dart';
 import 'package:wister_lite/app/ults/clock.dart';
 
 import '../controllers/home_controller.dart';
+import 'package:wister_lite/app/translations/tr_context.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -32,18 +34,18 @@ class HomeView extends GetView<HomeController> {
                 padding: const EdgeInsets.fromLTRB(AppSpacing.page, 0, AppSpacing.page, 0),
                 sliver: SliverList.list(
                   children: [
-                    Text('Jangan lupa catat keuanganmu hari ini.', style: context.text.bodySmall?.copyWith(color: context.colors.inkMuted)),
+                    Text('Jangan lupa catat keuanganmu hari ini.'.tr, style: context.text.bodySmall?.copyWith(color: context.colors.inkMuted)),
                     const SizedBox(height: AppSpacing.s20),
-                    BalanceCard(amount: controller.totalBalance.value, caption: 'Semua pemasukan dikurangi pengeluaran'),
+                    BalanceCard(amount: controller.totalBalance.value, caption: 'Semua pemasukan dikurangi pengeluaran'.tr),
                     const SizedBox(height: AppSpacing.stack),
                     Row(
                       children: [
                         Expanded(
-                          child: _MonthTotal(label: 'Masuk bulan ini', amount: controller.totalIncomeMonth.value, kind: AmountKind.income),
+                          child: _MonthTotal(label: 'Masuk bulan ini'.tr, amount: controller.totalIncomeMonth.value, kind: AmountKind.income),
                         ),
                         const SizedBox(width: AppSpacing.stack),
                         Expanded(
-                          child: _MonthTotal(label: 'Keluar bulan ini', amount: controller.totalOutcomeMonth.value, kind: AmountKind.expense),
+                          child: _MonthTotal(label: 'Keluar bulan ini'.tr, amount: controller.totalOutcomeMonth.value, kind: AmountKind.expense),
                         ),
                       ],
                     ),
@@ -92,9 +94,9 @@ class HomeView extends GetView<HomeController> {
         SliverToBoxAdapter(
           child: EmptyState(
             illustration: AppIllustrations.hariIniKosong,
-            title: 'Belum ada transaksi hari ini',
-            message: 'Catat pemasukan atau pengeluaranmu hari ini.',
-            actionLabel: 'Tambah',
+            title: 'Belum ada transaksi hari ini'.tr,
+            message: 'Catat pemasukan atau pengeluaranmu hari ini.'.tr,
+            actionLabel: 'Tambah'.tr,
             onAction: controller.openCreate,
             illustrationSize: 120,
           ),
@@ -127,7 +129,7 @@ class HomeView extends GetView<HomeController> {
           child: Padding(
             padding: const EdgeInsets.only(top: AppSpacing.s8),
             child: Center(
-              child: TextButton(onPressed: controller.openHistory, child: Text('Lihat $more transaksi lainnya')),
+              child: TextButton(onPressed: controller.openHistory, child: Text('Lihat @n transaksi lainnya'.trParams({'n': '$more'}))),
             ),
           ),
         ),
@@ -137,7 +139,7 @@ class HomeView extends GetView<HomeController> {
   Widget _tile(BuildContext context, Expense expense) {
     final category = expense.category;
     final isIncome = expense.transactionType == 'income';
-    final hasNote = category == null || expense.name != category.label;
+    final hasNote = category == null || !category.matchesLabel(expense.name);
     return TransactionTile(
       dismissKey: ValueKey(expense.id),
       title: hasNote ? expense.name : category.label,
@@ -171,7 +173,7 @@ class _MoreMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PopupMenuButton<Object>(
     icon: const Icon(AppIcons.dotsThreeVertical),
-    tooltip: 'Lainnya',
+    tooltip: 'Lainnya'.trIn('menu'),
     onSelected: (value) => switch (value) {
       Locale l => controller.changeLocale(l),
       ThemeMode m => controller.changeThemeMode(m),
@@ -185,20 +187,39 @@ class _MoreMenu extends StatelessWidget {
           children: [
             Icon(AppIcons.userCircle, size: 20, color: context.colors.inkMuted),
             const SizedBox(width: AppSpacing.s12),
-            const Expanded(child: Text('Profil & sinkronisasi')),
+            Expanded(child: Text('Profil & sinkronisasi'.tr)),
           ],
         ),
       ),
+      if (_nextAdLabel() case final label?)
+        PopupMenuItem<Object>(
+          enabled: false,
+          height: 28,
+          child: Text(label, style: context.text.labelSmall?.copyWith(color: context.colors.inkMuted)),
+        ),
       const PopupMenuDivider(),
-      _header(context, 'Bahasa'),
+      _header(context, 'Bahasa'.tr),
       for (final (locale, label) in _locales)
         _option(context, value: locale, label: label, icon: AppIcons.translate, selected: controller.locale.value == locale),
       const PopupMenuDivider(),
-      _header(context, 'Tema'),
+      _header(context, 'Tema'.tr),
       for (final (mode, label, icon) in _modes)
-        _option(context, value: mode, label: label, icon: icon, selected: controller.themeMode.value == mode),
+        _option(context, value: mode, label: label.tr, icon: icon, selected: controller.themeMode.value == mode),
     ],
   );
+
+  /// Format jam:menit (mis. "10:20"), dibulatkan ke atas agar tidak "00:00"
+  /// saat masih tersisa beberapa detik.
+  String? _nextAdLabel() {
+    if (!Get.isRegistered<AdService>()) return null;
+    final left = Get.find<AdService>().untilNext();
+    if (left == null) return null;
+    if (left == Duration.zero) return 'Iklan berikutnya: siap tampil'.tr;
+    final minutes = (left.inSeconds / 60).ceil();
+    final hh = (minutes ~/ 60).toString().padLeft(2, '0');
+    final mm = (minutes % 60).toString().padLeft(2, '0');
+    return 'Iklan berikutnya dalam @time'.trParams({'time': '$hh:$mm'});
+  }
 
   PopupMenuEntry<Object> _header(BuildContext context, String label) => PopupMenuItem<Object>(
     enabled: false,
@@ -276,11 +297,11 @@ class _TodayRow extends StatelessWidget {
             if (empty) ...[AppIllustration(AppIllustrations.hariIniKosong, size: 40), const SizedBox(width: AppSpacing.s12)],
             Expanded(
               child: Text(
-                empty ? 'Hari ini belum ada pengeluaran' : 'Keluar hari ini',
+                empty ? 'Hari ini belum ada pengeluaran'.tr : 'Keluar hari ini'.tr,
                 style: context.text.bodyLarge?.copyWith(color: empty ? c.inkMuted : c.ink),
               ),
             ),
-            if (!empty) AmountText(amount, kind: AmountKind.expense, semanticsPrefix: 'Keluar hari ini'),
+            if (!empty) AmountText(amount, kind: AmountKind.expense, semanticsPrefix: 'Keluar hari ini'.tr),
           ],
         ),
       ),
@@ -340,11 +361,11 @@ class _BudgetSummaryCard extends StatelessWidget {
       return _row(
         context,
         leading: CircleAvatar(radius: 24, backgroundColor: c.brandContainer, child: Icon(AppIcons.target, color: c.onBrandContainer)),
-        tooltip: 'Atur anggaran',
+        tooltip: 'Atur anggaran'.tr,
         children: [
-          Text('Belum ada anggaran', style: context.text.bodySmall?.copyWith(color: c.inkMuted)),
+          Text('Belum ada anggaran'.tr, style: context.text.bodySmall?.copyWith(color: c.inkMuted)),
           const SizedBox(height: AppSpacing.s2),
-          Text('Atur anggaran bulan ini', style: context.text.bodyLarge?.copyWith(color: c.ink)),
+          Text('Atur anggaran bulan ini'.tr, style: context.text.bodyLarge?.copyWith(color: c.ink)),
         ],
       );
     }
@@ -356,7 +377,7 @@ class _BudgetSummaryCard extends StatelessWidget {
     final muted = context.text.bodySmall?.copyWith(color: c.inkMuted);
     return _row(
       context,
-      tooltip: 'Lihat anggaran',
+      tooltip: 'Lihat anggaran'.tr,
       // Cincin persen terpakai; warnanya mengikuti status anggaran.
       leading: SizedBox.square(
         dimension: 48,
@@ -375,12 +396,12 @@ class _BudgetSummaryCard extends StatelessWidget {
         ),
       ),
       children: [
-        Text(over ? 'Lewat anggaran' : 'Sisa anggaran', style: muted),
+        Text(over ? 'Lewat anggaran'.tr : 'Sisa anggaran'.tr, style: muted),
         const SizedBox(height: AppSpacing.s2),
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: AlignmentDirectional.centerStart,
-          child: AmountText(remaining.abs(), color: over ? c.danger : c.ink, semanticsPrefix: over ? 'Lewat anggaran' : 'Sisa anggaran'),
+          child: AmountText(remaining.abs(), color: over ? c.danger : c.ink, semanticsPrefix: over ? 'Lewat anggaran'.tr : 'Sisa anggaran'.tr),
         ),
         if (alertCount > 0) ...[
           const SizedBox(height: AppSpacing.s2),
@@ -388,7 +409,7 @@ class _BudgetSummaryCard extends StatelessWidget {
             children: [
               Icon(AppIconsFill.warning, size: 14, color: c.warning),
               const SizedBox(width: AppSpacing.s4),
-              Flexible(child: Text('$alertCount kategori hampir habis', style: muted)),
+              Flexible(child: Text('@n kategori hampir habis'.trParams({'n': '$alertCount'}), style: muted)),
             ],
           ),
         ],
@@ -427,8 +448,8 @@ class _TopCategoriesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _TappableCard(
-    title: 'Paling banyak keluar',
-    tooltip: 'Lihat statistik',
+    title: 'Paling banyak keluar'.tr,
+    tooltip: 'Lihat statistik'.tr,
     onTap: onTap,
     child: Column(
       children: [
@@ -455,7 +476,11 @@ class _TopCategoryRow extends StatelessWidget {
     final c = context.colors;
     final percent = (share * 100).round();
     return Semantics(
-      label: '${category.label}, ${AppFormat.spokenRupiah(amount)}, $percent persen pengeluaran bulan ini',
+      label: '@cat, @amount, @pct persen pengeluaran bulan ini'.trParams({
+        'cat': category.label,
+        'amount': AppFormat.spokenRupiah(amount),
+        'pct': '$percent',
+      }),
       excludeSemantics: true,
       child: Row(
         children: [
@@ -524,10 +549,10 @@ class _TrendCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Semantics(header: true, child: Text('Pengeluaran 7 hari terakhir', style: context.text.titleMedium)),
+            Semantics(header: true, child: Text('Pengeluaran 7 hari terakhir'.tr, style: context.text.titleMedium)),
             const SizedBox(height: AppSpacing.s12),
             Semantics(
-              label: 'Grafik pengeluaran 7 hari terakhir: $spoken',
+              label: 'Grafik pengeluaran 7 hari terakhir: @days'.trParams({'days': spoken}),
               excludeSemantics: true,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -553,8 +578,8 @@ class _TrendCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _Stat(
-                    label: 'Rata-rata/hari bulan ini',
-                    child: AmountText(dailyAverage, kind: AmountKind.neutral, size: AmountSize.small, semanticsPrefix: 'Rata-rata per hari'),
+                    label: 'Rata-rata/hari bulan ini'.tr,
+                    child: AmountText(dailyAverage, kind: AmountKind.neutral, size: AmountSize.small, semanticsPrefix: 'Rata-rata per hari'.tr),
                   ),
                 ),
                 if (monthChange case final change?) ...[
@@ -579,6 +604,7 @@ class _DayBar extends StatelessWidget {
   final bool isToday;
   final double height;
 
+  /// Nama hari pendek (kunci terjemahan; `.tr` saat tampil).
   static const _days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
   @override
@@ -586,7 +612,7 @@ class _DayBar extends StatelessWidget {
     final c = context.colors;
     final barHeight = amount > 0 ? (height * ratio).clamp(4.0, height) : 2.0;
     return Tooltip(
-      message: '${isToday ? 'Hari ini' : AppFormat.dayMonthShort(date)}: ${AppFormat.rupiah(amount)}',
+      message: '${isToday ? 'Hari ini'.tr : AppFormat.dayMonthShort(date)}: ${AppFormat.rupiah(amount)}',
       triggerMode: TooltipTriggerMode.tap,
       child: Column(
         children: [
@@ -608,7 +634,7 @@ class _DayBar extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.s4),
           Text(
-            _days[date.weekday - 1],
+            _days[date.weekday - 1].tr,
             style: context.text.labelSmall?.copyWith(color: isToday ? c.ink : c.inkMuted, fontWeight: isToday ? FontWeight.w700 : null),
           ),
         ],
@@ -645,9 +671,11 @@ class _MonthChange extends StatelessWidget {
     final c = context.colors;
     final percent = (change.abs() * 100).round();
     final saving = change <= 0;
-    final text = percent == 0 ? 'Sama seperti bulan lalu' : '$percent% lebih ${saving ? 'hemat' : 'boros'}';
+    final text = percent == 0
+        ? 'Sama seperti bulan lalu'.tr
+        : (saving ? '@pct% lebih hemat' : '@pct% lebih boros').trParams({'pct': '$percent'});
     return _Stat(
-      label: 'Dibanding bulan lalu',
+      label: 'Dibanding bulan lalu'.tr,
       child: Row(
         children: [
           Icon(saving ? AppIconsFill.checkCircle : AppIconsFill.warning, size: 16, color: saving ? c.income : c.warning),
@@ -669,12 +697,12 @@ class _HistoryHeader extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     children: [
       Expanded(
-        child: Semantics(header: true, child: Text('Transaksi hari ini', style: context.text.titleLarge)),
+        child: Semantics(header: true, child: Text('Transaksi hari ini'.tr, style: context.text.titleLarge)),
       ),
       IconButton(
         onPressed: onTap,
-        tooltip: 'Lihat semua riwayat',
-        icon: const Icon(AppIcons.caretRight, semanticLabel: 'Lihat semua riwayat'),
+        tooltip: 'Lihat semua riwayat'.tr,
+        icon: Icon(AppIcons.caretRight, semanticLabel: 'Lihat semua riwayat'.tr),
       ),
     ],
   );

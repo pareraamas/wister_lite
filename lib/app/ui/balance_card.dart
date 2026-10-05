@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../theme/app_theme.dart';
 import 'amount_text.dart';
@@ -12,7 +13,7 @@ class BalanceCard extends StatelessWidget {
   const BalanceCard({
     super.key,
     required this.amount,
-    this.label = 'Saldo total',
+    this.label,
     this.caption,
     this.trailing,
     this.footer,
@@ -21,7 +22,9 @@ class BalanceCard extends StatelessWidget {
   });
 
   final num amount;
-  final String label;
+
+  /// Null = "Saldo total" (diterjemahkan).
+  final String? label;
 
   /// Kalimat penjelas kecil di bawah angka, mis. "Semua pemasukan dikurangi pengeluaran".
   final String? caption;
@@ -39,6 +42,7 @@ class BalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.components.balanceCard;
+    final label = this.label ?? 'Saldo total'.tr;
     final reduced = !animate || AppMotion.reduced(context);
 
     Widget amountText(num value) => AmountText(

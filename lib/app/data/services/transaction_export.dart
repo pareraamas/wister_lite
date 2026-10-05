@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:get/get.dart';
 import 'package:wister_lite/app/data/models/category_model.dart';
 import 'package:wister_lite/app/data/models/expense.dart';
 import 'package:wister_lite/app/data/services/transaction_csv.dart';
@@ -31,7 +32,8 @@ class ExportFile {
 abstract final class TransactionExport {
   static Future<ExportFile> build(ExportFormat format, List<Expense> expenses, ReportPeriod period) async {
     final summary = TransactionSummary.of(expenses);
-    final base = format == ExportFormat.pdf ? 'laporan-${period.fileStamp}' : 'transaksi-${period.fileStamp}';
+    final stamp = {'stamp': period.fileStamp};
+    final base = format == ExportFormat.pdf ? 'laporan-@stamp'.trParams(stamp) : 'transaksi-@stamp'.trParams(stamp);
     final bytes = switch (format) {
       ExportFormat.excel => TransactionXlsx.encode(summary, period),
       ExportFormat.pdf => await TransactionPdf.build(summary, period),
@@ -47,9 +49,9 @@ abstract final class TransactionExport {
         Expense(id: '', name: name, type: '', category: cat(category), transactionType: type, dateTime: at, price: price);
 
     final csv = TransactionCsv.encode([
-      row('Gaji', 'Gaji', 'income', DateTime(2026, 9, 1, 9), 8000000),
-      row('Makan siang', 'Makanan', 'expense', DateTime(2026, 9, 2, 12, 30), 25000),
+      row('Gaji'.tr, 'Gaji'.tr, 'income', DateTime(2026, 9, 1, 9), 8000000),
+      row('Makan siang'.tr, 'Makanan'.tr, 'expense', DateTime(2026, 9, 2, 12, 30), 25000),
     ]);
-    return ExportFile(Uint8List.fromList(utf8.encode(csv)), 'template-import.csv', ExportFormat.csv.mimeType);
+    return ExportFile(Uint8List.fromList(utf8.encode(csv)), 'template-import.csv'.tr, ExportFormat.csv.mimeType);
   }
 }

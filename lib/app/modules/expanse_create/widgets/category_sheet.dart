@@ -11,7 +11,7 @@ import '../controllers/expanse_create_controller.dart';
 Future<void> showCategorySheet(BuildContext context, ExpanseCreateController controller) {
   return AppSheet.show<void>(
     context,
-    title: 'Pilih kategori',
+    title: 'Pilih kategori'.tr,
     child: _CategoryGrid(controller: controller),
   );
 }
@@ -43,7 +43,7 @@ class _CategoryGrid extends StatelessWidget {
               itemBuilder: (context, index) {
                 if (index == categories.length) {
                   return _GridItem(
-                    label: 'Buat baru',
+                    label: 'Buat baru'.tr,
                     icon: AppIllustration(AppIllustrations.buatBaru, size: 56),
                     onTap: () async {
                       final created = await controller.openCreateCategory();
@@ -68,7 +68,7 @@ class _CategoryGrid extends StatelessWidget {
           child: TextButton.icon(
             onPressed: controller.openManageCategories,
             icon: const Icon(AppIcons.pencilSimple),
-            label: const Text('Kelola kategori'),
+            label: Text('Kelola kategori'.tr),
           ),
         ),
       ],

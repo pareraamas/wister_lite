@@ -23,13 +23,13 @@ class ExpanseCreateView extends GetView<ExpanseCreateController> {
       children: [
         Scaffold(
           appBar: AppBar(
-            leading: IconButton(icon: const Icon(AppIcons.x), tooltip: 'Tutup', onPressed: Get.back),
+            leading: IconButton(icon: const Icon(AppIcons.x), tooltip: 'Tutup'.tr, onPressed: Get.back),
             centerTitle: true,
             title: Obx(() => Semantics(label: controller.title, child: const _TypeToggle())),
             actions: [
               Obx(() {
                 if (!controller.isEditing) return const SizedBox(width: AppSpacing.minTouch);
-                return IconButton(icon: const Icon(AppIcons.trash), tooltip: 'Hapus transaksi', onPressed: () => _confirmDelete(context));
+                return IconButton(icon: const Icon(AppIcons.trash), tooltip: 'Hapus transaksi'.tr, onPressed: () => _confirmDelete(context));
               }),
               const SizedBox(width: AppSpacing.s4),
             ],
@@ -82,15 +82,15 @@ class ExpanseCreateView extends GetView<ExpanseCreateController> {
   Future<void> _confirmDelete(BuildContext context) async {
     final ok = await ConfirmDialog.show(
       context,
-      title: 'Hapus transaksi ini?',
-      message: 'Catatan ini akan dihapus permanen dan tidak bisa dikembalikan.',
+      title: 'Hapus transaksi ini?'.tr,
+      message: 'Catatan ini akan dihapus permanen dan tidak bisa dikembalikan.'.tr,
     );
     if (!ok) return;
     if (await controller.deleteExpanse()) {
       Get.back(result: true);
-      showAppSnackBar('Transaksi dihapus');
+      showAppSnackBar('Transaksi dihapus'.tr);
     } else {
-      showAppSnackBar('Gagal menghapus transaksi. Coba lagi, ya.');
+      showAppSnackBar('Gagal menghapus transaksi. Coba lagi, ya.'.tr);
     }
   }
 }
@@ -106,9 +106,9 @@ class _TypeToggle extends GetView<ExpanseCreateController> {
       final income = controller.isIncome;
       return SegmentedButton<String>(
         showSelectedIcon: false,
-        segments: const [
-          ButtonSegment(value: 'expense', label: Text('Keluar')),
-          ButtonSegment(value: 'income', label: Text('Masuk')),
+        segments: [
+          ButtonSegment(value: 'expense', label: Text('Keluar'.tr)),
+          ButtonSegment(value: 'income', label: Text('Masuk'.tr)),
         ],
         selected: {controller.transactionType.value},
         onSelectionChanged: (s) => controller.setType(s.first),
@@ -141,13 +141,13 @@ class _AmountDisplay extends GetView<ExpanseCreateController> {
               kind: empty ? AmountKind.neutral : kind,
               size: AmountSize.display,
               color: empty ? c.inkMuted : null,
-              semanticsPrefix: 'Nominal',
+              semanticsPrefix: 'Nominal'.tr,
             ),
           ),
           if (error != null)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.s4),
-              child: Text(error, style: context.text.bodyMedium?.copyWith(color: c.danger)),
+              child: Text(error.tr, style: context.text.bodyMedium?.copyWith(color: c.danger)),
             ),
         ],
       );
@@ -176,7 +176,7 @@ class _NoteField extends StatelessWidget {
         textInputAction: TextInputAction.done,
         style: context.text.bodyLarge,
         decoration: InputDecoration(
-          hintText: 'Tambah catatan',
+          hintText: 'Tambah catatan'.tr,
           fillColor: c.surfaceContainerLow,
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16, vertical: AppSpacing.s12),
@@ -225,8 +225,8 @@ class _CategoryStrip extends GetView<ExpanseCreateController> {
                   return Center(
                     child: ActionChip(
                       avatar: Icon(AppIcons.magnifyingGlass, color: c.brand),
-                      label: const Text('Semua'),
-                      tooltip: 'Pilih kategori',
+                      label: Text('Semua'.tr),
+                      tooltip: 'Pilih kategori'.tr,
                       onPressed: onOpenAll,
                     ),
                   );
@@ -247,7 +247,7 @@ class _CategoryStrip extends GetView<ExpanseCreateController> {
           if (error != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.s4, AppSpacing.page, 0),
-              child: Text(error, style: context.text.bodyMedium?.copyWith(color: c.danger)),
+              child: Text(error.tr, style: context.text.bodyMedium?.copyWith(color: c.danger)),
             ),
         ],
       );
@@ -280,7 +280,7 @@ class _BottomPanel extends StatelessWidget {
                 Obx(
                   () => Semantics(
                     button: true,
-                    label: 'Tanggal ${controller.dateLabel}, ketuk untuk mengubah',
+                    label: 'Tanggal @date, ketuk untuk mengubah'.trParams({'date': controller.dateLabel}),
                     excludeSemantics: true,
                     child: OutlinedButton.icon(
                       onPressed: onPickDate,
@@ -291,7 +291,7 @@ class _BottomPanel extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.s8),
                 Expanded(
-                  child: Obx(() => FilledButton(onPressed: controller.isSaving.value ? null : controller.save, child: const Text('Simpan'))),
+                  child: Obx(() => FilledButton(onPressed: controller.isSaving.value ? null : controller.save, child: Text('Simpan'.tr))),
                 ),
               ],
             ),
@@ -318,7 +318,7 @@ class _SuccessOverlay extends GetView<ExpanseCreateController> {
           const SizedBox(height: AppSpacing.s8),
           SuccessCheck(onCompleted: controller.finishSave),
           const SizedBox(height: AppSpacing.s8),
-          Text('Tersimpan!', style: context.text.titleLarge),
+          Text('Tersimpan!'.tr, style: context.text.titleLarge),
         ],
       );
       if (!AppMotion.reduced(context)) {

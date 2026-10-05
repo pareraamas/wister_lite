@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
 import '../theme/app_theme.dart';
@@ -10,10 +11,11 @@ import 'app_illustration.dart';
 /// Diputar sekali. Saat animasi sistem dimatikan, langsung tampil frame
 /// terakhir. Bila aset Lottie gagal dimuat, tampil ikon centang biasa.
 class SuccessCheck extends StatefulWidget {
-  const SuccessCheck({super.key, this.size = 72, this.semanticLabel = 'Tersimpan', this.onCompleted});
+  const SuccessCheck({super.key, this.size = 72, this.semanticLabel, this.onCompleted});
 
   final double size;
-  final String semanticLabel;
+  /// Null = "Tersimpan" (diterjemahkan).
+  final String? semanticLabel;
   final VoidCallback? onCompleted;
 
   @override
@@ -48,7 +50,7 @@ class _SuccessCheckState extends State<SuccessCheck> with SingleTickerProviderSt
     final c = context.colors;
     final fallback = Icon(AppIconsFill.checkCircle, size: widget.size, color: c.income);
     return Semantics(
-      label: widget.semanticLabel,
+      label: widget.semanticLabel ?? 'Tersimpan'.tr,
       liveRegion: true,
       child: ExcludeSemantics(
         child: SizedBox.square(

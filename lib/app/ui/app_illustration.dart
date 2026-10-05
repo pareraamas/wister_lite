@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 
 import '../../gen/assets.gen.dart';
 import '../theme/app_theme.dart';
@@ -34,10 +35,12 @@ enum DompiMood {
   mengantuk('Dompi mengantuk'),
   waspada('Dompi waspada');
 
-  const DompiMood(this.label);
+  const DompiMood(this._label);
 
-  /// Label semantik bawaan bila ilustrasi tidak dekoratif.
-  final String label;
+  final String _label;
+
+  /// Label semantik bawaan bila ilustrasi tidak dekoratif (sudah diterjemahkan).
+  String get label => _label.tr;
 
   String get asset => switch (this) {
     DompiMood.senang => Assets.illustrations.dompi.dompiSenang,
@@ -146,7 +149,7 @@ abstract final class CategoryIcons {
     tag,
   ];
 
-  /// Label untuk screen reader di pemilih ikon.
+  /// Label untuk screen reader di pemilih ikon (kunci terjemahan; tampilkan lewat [labelOf]).
   static final Map<String, String> labels = {
     pizzaSlice: 'Makanan',
     rssAlt: 'Internet',
@@ -193,7 +196,7 @@ abstract final class CategoryIcons {
     tag: 'Lainnya',
   };
 
-  static String labelOf(String icon) => labels[icon] ?? 'Ikon kategori';
+  static String labelOf(String icon) => (labels[icon] ?? 'Ikon kategori').tr;
 }
 
 /// Memetakan warna terang bawaan ilustrasi ke token tema aktif, sehingga

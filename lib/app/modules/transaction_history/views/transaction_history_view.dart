@@ -17,7 +17,7 @@ class TransactionHistoryView extends GetView<TransactionHistoryController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Riwayat Transaksi')),
+      appBar: AppBar(title: Text('Riwayat Transaksi'.tr)),
       body: RefreshIndicator(
         onRefresh: controller.reload,
         child: NotificationListener<ScrollNotification>(
@@ -78,9 +78,9 @@ class TransactionHistoryView extends GetView<TransactionHistoryController> {
           child: f.isActive
               ? EmptyState(
                   illustration: AppIllustrations.emptyStatistik,
-                  title: 'Tidak ada yang cocok',
-                  message: 'Coba ubah atau hapus filternya.',
-                  actionLabel: 'Hapus filter',
+                  title: 'Tidak ada yang cocok'.tr,
+                  message: 'Coba ubah atau hapus filternya.'.tr,
+                  actionLabel: 'Hapus filter'.tr,
                   onAction: controller.resetFilters,
                   illustrationSize: 140,
                 )
@@ -133,7 +133,7 @@ class TransactionHistoryView extends GetView<TransactionHistoryController> {
   Widget _tile(BuildContext context, Expense expense, {bool showDate = false}) {
     final category = expense.category;
     final isIncome = expense.transactionType == 'income';
-    final hasNote = category == null || expense.name != category.label;
+    final hasNote = category == null || !category.matchesLabel(expense.name);
     return TransactionTile(
       dismissKey: ValueKey(expense.id),
       title: hasNote ? expense.name : category.label,
@@ -165,11 +165,11 @@ class _SearchField extends StatelessWidget {
         onChanged: controller.onSearchChanged,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: 'Cari catatan atau kategori',
+          hintText: 'Cari catatan atau kategori'.tr,
           prefixIcon: const Icon(AppIcons.magnifyingGlass),
           suffixIcon: value.text.isEmpty
               ? null
-              : IconButton(tooltip: 'Hapus pencarian', onPressed: controller.clearSearch, icon: const Icon(AppIcons.x)),
+              : IconButton(tooltip: 'Hapus pencarian'.tr, onPressed: controller.clearSearch, icon: const Icon(AppIcons.x)),
         ),
       ),
     );
@@ -190,7 +190,7 @@ class _FilterButton extends StatelessWidget {
       isLabelVisible: n > 0,
       label: Text('$n'),
       child: IconButton.filledTonal(
-        tooltip: n > 0 ? 'Filter, $n aktif' : 'Filter',
+        tooltip: n > 0 ? 'Filter, @n aktif'.trParams({'n': '$n'}) : 'Filter'.tr,
         onPressed: () => _openFilterSheet(context, controller),
         icon: const Icon(AppIcons.funnelSimple),
       ),
@@ -201,7 +201,7 @@ class _FilterButton extends StatelessWidget {
 Future<void> _openFilterSheet(BuildContext context, TransactionHistoryController controller) async {
   final result = await AppSheet.show<TransactionFilter>(
     context,
-    title: 'Filter',
+    title: 'Filter'.tr,
     child: _FilterSheet(controller: controller),
   );
   if (result != null) controller.applyFilter(result);
@@ -218,13 +218,13 @@ class _ActiveFilters extends StatelessWidget {
     final f = controller.filter.value;
     final cats = controller.categories;
     final chips = <(String, VoidCallback)>[
-      if (f.transactionType != null) (f.transactionType == 'income' ? 'Pemasukan' : 'Pengeluaran', () => controller.setType(null)),
+      if (f.transactionType != null) (f.transactionType == 'income' ? 'Pemasukan'.tr : 'Pengeluaran'.tr, () => controller.setType(null)),
       if (f.hasPeriod) (_periodLabel(f.start, f.end), () => controller.setPeriod(null, null)),
       if (f.categoryIds.isNotEmpty)
         (
           f.categoryIds.length == 1
-              ? cats.firstWhereOrNull((c) => c.id == f.categoryIds.first)?.label ?? '1 kategori'
-              : '${f.categoryIds.length} kategori',
+              ? cats.firstWhereOrNull((c) => c.id == f.categoryIds.first)?.label ?? '1 kategori'.tr
+              : '@n kategori'.trParams({'n': '${f.categoryIds.length}'}),
           () => controller.setCategories(const {}),
         ),
       if (f.hasAmount) (_amountLabel(f.minAmount, f.maxAmount), () => controller.setAmount(null, null)),
@@ -244,11 +244,11 @@ class _ActiveFilters extends StatelessWidget {
                 label: Text(label),
                 onPressed: () => _openFilterSheet(context, controller),
                 onDeleted: onRemove,
-                deleteButtonTooltipMessage: 'Hapus filter $label',
+                deleteButtonTooltipMessage: 'Hapus filter @label'.trParams({'label': label}),
                 deleteIcon: const Icon(AppIcons.x, size: 16),
               ),
             ),
-          if (chips.length > 1) TextButton(onPressed: controller.resetFilters, child: const Text('Reset')),
+          if (chips.length > 1) TextButton(onPressed: controller.resetFilters, child: Text('Reset'.tr)),
         ],
       ),
     );
@@ -258,8 +258,8 @@ class _ActiveFilters extends StatelessWidget {
 String _day(DateTime d) => '${AppFormat.dayMonthShort(d)} ${d.year}';
 
 String _periodLabel(DateTime? start, DateTime? end) {
-  if (start == null) return 'Sampai ${_day(end!)}';
-  if (end == null) return 'Sejak ${_day(start)}';
+  if (start == null) return 'Sampai @date'.trParams({'date': _day(end!)});
+  if (end == null) return 'Sejak @date'.trParams({'date': _day(start)});
   final lastOfMonth = DateTime(start.year, start.month + 1, 0);
   if (start.day == 1 && DateUtils.isSameDay(end, lastOfMonth)) return AppFormat.monthYearShort(start);
   if (DateUtils.isSameDay(start, end)) return _day(start);
@@ -343,11 +343,11 @@ class _FilterSheetState extends State<_FilterSheet> {
     final f = _draft;
     final now = Clock.now();
     final presets = <(String, DateTime?, DateTime?)>[
-      ('Semua', null, null),
-      ('Bulan ini', DateTime(now.year, now.month), DateTime(now.year, now.month + 1, 0)),
-      ('Bulan lalu', DateTime(now.year, now.month - 1), DateTime(now.year, now.month, 0)),
-      ('3 bulan terakhir', DateTime(now.year, now.month - 2), DateTime(now.year, now.month + 1, 0)),
-      ('Tahun ini', DateTime(now.year), DateTime(now.year, 12, 31)),
+      ('Semua'.tr, null, null),
+      ('Bulan ini'.tr, DateTime(now.year, now.month), DateTime(now.year, now.month + 1, 0)),
+      ('Bulan lalu'.tr, DateTime(now.year, now.month - 1), DateTime(now.year, now.month, 0)),
+      ('3 bulan terakhir'.tr, DateTime(now.year, now.month - 2), DateTime(now.year, now.month + 1, 0)),
+      ('Tahun ini'.tr, DateTime(now.year), DateTime(now.year, 12, 31)),
     ];
     bool sameDay(DateTime? a, DateTime? b) => a == null ? b == null : b != null && DateUtils.isSameDay(a, b);
 
@@ -359,18 +359,18 @@ class _FilterSheetState extends State<_FilterSheet> {
           child: ListView(
             shrinkWrap: true,
             children: [
-              const _SectionLabel('Jenis'),
+              _SectionLabel('Jenis'.tr),
               SegmentedButton<String>(
                 showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: 'all', label: Text('Semua')),
-                  ButtonSegment(value: 'income', label: Text('Pemasukan')),
-                  ButtonSegment(value: 'expense', label: Text('Pengeluaran')),
+                segments: [
+                  ButtonSegment(value: 'all', label: Text('Semua'.tr)),
+                  ButtonSegment(value: 'income', label: Text('Pemasukan'.tr)),
+                  ButtonSegment(value: 'expense', label: Text('Pengeluaran'.tr)),
                 ],
                 selected: {f.transactionType ?? 'all'},
                 onSelectionChanged: (s) => _update(f.copyWith(transactionType: () => s.first == 'all' ? null : s.first)),
               ),
-              const _SectionLabel('Rentang tanggal'),
+              _SectionLabel('Rentang tanggal'.tr),
               Wrap(
                 spacing: AppSpacing.s8,
                 runSpacing: AppSpacing.s8,
@@ -388,15 +388,15 @@ class _FilterSheetState extends State<_FilterSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: _DateField(label: 'Dari', value: f.start, lastDate: f.end, onChanged: (d) => _update(f.withPeriod(d, f.end))),
+                    child: _DateField(label: 'Dari'.tr, value: f.start, lastDate: f.end, onChanged: (d) => _update(f.withPeriod(d, f.end))),
                   ),
                   const SizedBox(width: AppSpacing.stack),
                   Expanded(
-                    child: _DateField(label: 'Sampai', value: f.end, firstDate: f.start, onChanged: (d) => _update(f.withPeriod(f.start, d))),
+                    child: _DateField(label: 'Sampai'.tr, value: f.end, firstDate: f.start, onChanged: (d) => _update(f.withPeriod(f.start, d))),
                   ),
                 ],
               ),
-              const _SectionLabel('Kategori'),
+              _SectionLabel('Kategori'.tr),
               Wrap(
                 spacing: AppSpacing.s8,
                 runSpacing: AppSpacing.s8,
@@ -413,7 +413,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                     ),
                 ],
               ),
-              const _SectionLabel('Nominal'),
+              _SectionLabel('Nominal'.tr),
               Row(
                 children: [
                   Expanded(
@@ -423,7 +423,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                       inputFormatters: [_formatter],
                       textInputAction: TextInputAction.next,
                       onChanged: _onAmountChanged,
-                      decoration: const InputDecoration(labelText: 'Minimal', hintText: 'Rp. 0'),
+                      decoration: InputDecoration(labelText: 'Minimal'.tr, hintText: 'Rp. 0'),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.stack),
@@ -433,12 +433,12 @@ class _FilterSheetState extends State<_FilterSheet> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [_formatter],
                       onChanged: _onAmountChanged,
-                      decoration: const InputDecoration(labelText: 'Maksimal', hintText: 'Rp. 0'),
+                      decoration: InputDecoration(labelText: 'Maksimal'.tr, hintText: 'Rp. 0'),
                     ),
                   ),
                 ],
               ),
-              const _SectionLabel('Urutkan'),
+              _SectionLabel('Urutkan'.tr),
               Wrap(
                 spacing: AppSpacing.s8,
                 runSpacing: AppSpacing.s8,
@@ -459,12 +459,15 @@ class _FilterSheetState extends State<_FilterSheet> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton(onPressed: _reset, child: const Text('Reset')),
+              child: OutlinedButton(onPressed: _reset, child: Text('Reset'.tr)),
             ),
             const SizedBox(width: AppSpacing.stack),
             Expanded(
               flex: 2,
-              child: FilledButton(onPressed: _apply, child: Text(_count == null ? 'Terapkan' : 'Tampilkan $_count transaksi')),
+              child: FilledButton(
+                onPressed: _apply,
+                child: Text(_count == null ? 'Terapkan'.tr : 'Tampilkan @n transaksi'.trParams({'n': '$_count'})),
+              ),
             ),
           ],
         ),
@@ -527,7 +530,7 @@ class _DateField extends StatelessWidget {
           labelText: label,
           suffixIcon: v == null
               ? const Icon(AppIcons.calendarBlank)
-              : IconButton(tooltip: 'Kosongkan $label', onPressed: () => onChanged(null), icon: const Icon(AppIcons.x)),
+              : IconButton(tooltip: 'Kosongkan @label'.trParams({'label': label}), onPressed: () => onChanged(null), icon: const Icon(AppIcons.x)),
         ),
         child: Text(v == null ? '' : _day(v), maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
@@ -550,16 +553,16 @@ class _Summary extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${totals.count} transaksi', style: context.text.labelLarge?.copyWith(color: c.inkMuted)),
+            Text('@n transaksi'.trParams({'n': '${totals.count}'}), style: context.text.labelLarge?.copyWith(color: c.inkMuted)),
             const SizedBox(height: AppSpacing.s8),
             Row(
               children: [
                 Expanded(
-                  child: _SummaryAmount(label: 'Masuk', amount: totals.income, kind: AmountKind.income),
+                  child: _SummaryAmount(label: 'Masuk'.tr, amount: totals.income, kind: AmountKind.income),
                 ),
                 const SizedBox(width: AppSpacing.stack),
                 Expanded(
-                  child: _SummaryAmount(label: 'Keluar', amount: totals.expense, kind: AmountKind.expense),
+                  child: _SummaryAmount(label: 'Keluar'.tr, amount: totals.expense, kind: AmountKind.expense),
                 ),
               ],
             ),

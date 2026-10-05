@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../theme/app_theme.dart';
 import 'app_icons.dart';
@@ -100,22 +101,22 @@ class BudgetProgress extends StatelessWidget {
     final remaining = hasAmounts ? budget! - used! : 0;
 
     final (statusText, statusColor, statusIcon) = switch (status) {
-      BudgetStatus.safe => (hasAmounts ? 'Sisa ${AppFormat.rupiah(remaining)}' : '$percent% terpakai', c.inkMuted, null),
-      BudgetStatus.warning => (hasAmounts ? 'Sisa ${AppFormat.rupiah(remaining)}' : 'Hampir habis', c.warning, AppIconsFill.warning),
-      BudgetStatus.over => (hasAmounts ? 'Lewat ${AppFormat.rupiah(remaining)}' : 'Lewat anggaran', c.danger, AppIconsFill.warningOctagon),
+      BudgetStatus.safe => (hasAmounts ? 'Sisa @amount'.trParams({'amount': AppFormat.rupiah(remaining)}) : '@percent% terpakai'.trParams({'percent': '$percent'}), c.inkMuted, null),
+      BudgetStatus.warning => (hasAmounts ? 'Sisa @amount'.trParams({'amount': AppFormat.rupiah(remaining)}) : 'Hampir habis'.tr, c.warning, AppIconsFill.warning),
+      BudgetStatus.over => (hasAmounts ? 'Lewat @amount'.trParams({'amount': AppFormat.rupiah(remaining)}) : 'Lewat anggaran'.tr, c.danger, AppIconsFill.warningOctagon),
     };
 
     final statusSpoken = switch (status) {
-      BudgetStatus.safe => hasAmounts ? 'aman, sisa ${AppFormat.spokenRupiah(remaining)}' : 'aman',
-      BudgetStatus.warning => hasAmounts ? 'hampir habis, sisa ${AppFormat.spokenRupiah(remaining)}' : 'hampir habis',
-      BudgetStatus.over => hasAmounts ? 'lewat anggaran ${AppFormat.spokenRupiah(remaining)}' : 'lewat anggaran',
+      BudgetStatus.safe => hasAmounts ? 'aman, sisa @amount'.trParams({'amount': AppFormat.spokenRupiah(remaining)}) : 'aman'.tr,
+      BudgetStatus.warning => hasAmounts ? 'hampir habis, sisa @amount'.trParams({'amount': AppFormat.spokenRupiah(remaining)}) : 'hampir habis'.tr,
+      BudgetStatus.over => hasAmounts ? 'lewat anggaran @amount'.trParams({'amount': AppFormat.spokenRupiah(remaining)}) : 'lewat anggaran'.tr,
     };
     final semantics = [
       ?label,
-      if (hasAmounts) 'terpakai ${AppFormat.digits(used!)} dari ${AppFormat.spokenRupiah(budget!)}',
-      '$percent persen',
+      if (hasAmounts) 'terpakai @used dari @budget'.trParams({'used': AppFormat.digits(used!), 'budget': AppFormat.spokenRupiah(budget!)}),
+      '@percent persen'.trParams({'percent': '$percent'}),
       statusSpoken,
-      if (pace != null) 'hari ini ${(pace! * 100).round()} persen bulan berjalan',
+      if (pace != null) 'hari ini @pace persen bulan berjalan'.trParams({'pace': '${(pace! * 100).round()}'}),
     ].join(', ');
 
     final statusRow = Row(
@@ -157,7 +158,7 @@ class BudgetProgress extends StatelessWidget {
             const SizedBox(height: AppSpacing.s8),
             if (hasAmounts && !showRemaining)
               Text(
-                'Terpakai ${AppFormat.rupiah(used!)} dari ${AppFormat.rupiah(budget!)}',
+                'Terpakai @used dari @budget'.trParams({'used': AppFormat.rupiah(used!), 'budget': AppFormat.rupiah(budget!)}),
                 style: AppTypography.amountSmall.copyWith(color: c.inkMuted, fontWeight: FontWeight.w500),
               )
             else if (hasAmounts)
@@ -168,7 +169,7 @@ class BudgetProgress extends StatelessWidget {
                 runSpacing: AppSpacing.s4,
                 children: [
                   Text(
-                    '${AppFormat.rupiah(used!)} dari ${AppFormat.rupiah(budget!)}',
+                    '@used dari @budget'.trParams({'used': AppFormat.rupiah(used!), 'budget': AppFormat.rupiah(budget!)}),
                     style: AppTypography.amountSmall.copyWith(color: c.inkMuted, fontWeight: FontWeight.w500),
                   ),
                   statusRow,

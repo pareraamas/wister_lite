@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 import '../theme/app_theme.dart';
 import 'app_icons.dart';
@@ -102,15 +103,15 @@ class AmountKeypad extends StatelessWidget {
         row([
           _Key(
             tokens: tok,
-            semanticLabel: 'Tiga nol',
+            semanticLabel: 'Tiga nol'.tr,
             onTap: () => _press(const KeypadTripleZero()),
             child: Text('000', style: digitStyle?.copyWith(color: tok.actionForeground)),
           ),
           digit(0),
           _Key(
             tokens: tok,
-            semanticLabel: 'Hapus digit',
-            tooltip: 'Hapus digit (tahan untuk kosongkan)',
+            semanticLabel: 'Hapus digit'.tr,
+            tooltip: 'Hapus digit (tahan untuk kosongkan)'.tr,
             onTap: () => _press(const KeypadBackspace()),
             onLongPress: () => _press(const KeypadClear()),
             child: Icon(AppIcons.backspace, color: tok.actionForeground, size: 28),

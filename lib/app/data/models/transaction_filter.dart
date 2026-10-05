@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 import 'expense.dart';
 
 /// Urutan daftar di halaman Riwayat Transaksi.
@@ -7,9 +9,12 @@ enum TransactionSort {
   highest('Nominal terbesar'),
   lowest('Nominal terkecil');
 
-  const TransactionSort(this.label);
+  const TransactionSort(this._label);
 
-  final String label;
+  final String _label;
+
+  /// Label tampilan, mengikuti bahasa aktif.
+  String get label => _label.tr;
 
   /// Urutan tanggal dikelompokkan per hari; urutan nominal ditampilkan rata.
   bool get byDate => this == newest || this == oldest;

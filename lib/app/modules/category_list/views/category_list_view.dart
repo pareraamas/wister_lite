@@ -11,11 +11,11 @@ class CategoryListView extends GetView<CategoryListController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Kelola Kategori')),
+      appBar: AppBar(title: Text('Kelola Kategori'.tr)),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab-kategori',
-        tooltip: 'Buat kategori',
+        tooltip: 'Buat kategori'.tr,
         onPressed: controller.goToCreate,
         child: const Icon(AppIcons.plus, size: 28),
       ),
@@ -43,7 +43,7 @@ class CategoryListView extends GetView<CategoryListController> {
                           onTap: () => controller.goToEdit(category),
                           leading: CategoryBlob(iconAsset: category.icon, color: category.color),
                           title: Text(category.label),
-                          trailing: Icon(AppIcons.caretRight, color: context.colors.inkMuted, semanticLabel: 'Ubah'),
+                          trailing: Icon(AppIcons.caretRight, color: context.colors.inkMuted, semanticLabel: 'Ubah'.tr),
                         ),
                       );
                     },

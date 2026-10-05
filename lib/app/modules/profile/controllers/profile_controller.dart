@@ -31,11 +31,11 @@ class ProfileController extends GetxController {
     isBusy.value = true;
     try {
       final ok = await auth.signInWithGoogle();
-      if (ok) showAppSnackBar('Halo, ${auth.user.value!.name}!');
+      if (ok) showAppSnackBar('Halo, @name!'.trParams({'name': auth.user.value!.name}));
       return ok;
     } catch (e) {
       log('Masuk gagal: $e');
-      showAppSnackBar('Gagal masuk. Periksa koneksi lalu coba lagi.');
+      showAppSnackBar('Gagal masuk. Periksa koneksi lalu coba lagi.'.tr);
       return false;
     } finally {
       isBusy.value = false;
@@ -46,17 +46,17 @@ class ProfileController extends GetxController {
   Future<void> toggleSync(bool on) async {
     if (!on) {
       await ads.setEnabled(false);
-      showAppSnackBar('Sinkronisasi & iklan dimatikan');
+      showAppSnackBar('Sinkronisasi & iklan dimatikan'.tr);
       return;
     }
     if (!auth.isSignedIn && !await signIn()) return;
     await ads.setEnabled(true);
     final ok = await sync.syncNow();
-    showAppSnackBar(ok ? 'Sinkronisasi aktif. Data kamu sudah dicadangkan.' : 'Sinkronisasi aktif, tapi belum berhasil terkirim.');
+    showAppSnackBar(ok ? 'Sinkronisasi aktif. Data kamu sudah dicadangkan.'.tr : 'Sinkronisasi aktif, tapi belum berhasil terkirim.'.tr);
   }
 
   Future<void> syncNow() async {
-    if (await sync.syncNow()) showAppSnackBar('Data sudah tersinkron');
+    if (await sync.syncNow()) showAppSnackBar('Data sudah tersinkron'.tr);
   }
 
   /// Kirim sisa perubahan dulu, lalu kembalikan pesan konfirmasi keluar.
@@ -65,12 +65,12 @@ class ProfileController extends GetxController {
     await sync.refreshPending();
     final pending = sync.pendingCount.value;
     if (sync.lastSyncedAt.value == null) {
-      return 'Data belum pernah disinkronkan, jadi semua transaksi di HP ini akan hilang permanen.';
+      return 'Data belum pernah disinkronkan, jadi semua transaksi di HP ini akan hilang permanen.'.tr;
     }
     if (pending > 0) {
-      return '$pending perubahan belum terkirim ke server dan akan hilang. Data lainnya kembali saat kamu masuk lagi.';
+      return '@n perubahan belum terkirim ke server dan akan hilang. Data lainnya kembali saat kamu masuk lagi.'.trParams({'n': '$pending'});
     }
-    return 'Data di HP ini akan dihapus. Masuk lagi kapan saja untuk memulihkannya dari server.';
+    return 'Data di HP ini akan dihapus. Masuk lagi kapan saja untuk memulihkannya dari server.'.tr;
   }
 
   Future<void> signOut() async {
@@ -78,7 +78,7 @@ class ProfileController extends GetxController {
     try {
       await auth.signOut();
       await _wipeLocal();
-      showAppSnackBar('Kamu sudah keluar');
+      showAppSnackBar('Kamu sudah keluar'.tr);
     } finally {
       isBusy.value = false;
     }
@@ -89,10 +89,10 @@ class ProfileController extends GetxController {
     try {
       await auth.deleteAccount();
       await _wipeLocal();
-      showAppSnackBar('Akun dan datamu sudah dihapus');
+      showAppSnackBar('Akun dan datamu sudah dihapus'.tr);
     } catch (e) {
       log('Hapus akun gagal: $e');
-      showAppSnackBar('Gagal menghapus akun. Periksa koneksi lalu coba lagi.');
+      showAppSnackBar('Gagal menghapus akun. Periksa koneksi lalu coba lagi.'.tr);
     } finally {
       isBusy.value = false;
     }

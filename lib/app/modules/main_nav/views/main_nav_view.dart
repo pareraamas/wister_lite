@@ -31,9 +31,9 @@ class MainNavView extends GetView<MainNavController> {
           selectedIndex: controller.selectedIndex.value,
           onDestinationSelected: controller.changeTab,
           destinations: [
-            _destination(context, AppIcons.wallet, AppIconsFill.wallet, 'Beranda'),
-            _destination(context, AppIcons.target, AppIconsFill.target, 'Anggaran'),
-            _destination(context, AppIcons.chartDonut, AppIconsFill.chartDonut, 'Statistik'),
+            _destination(context, AppIcons.wallet, AppIconsFill.wallet, 'Beranda'.tr),
+            _destination(context, AppIcons.target, AppIconsFill.target, 'Anggaran'.tr),
+            _destination(context, AppIcons.chartDonut, AppIconsFill.chartDonut, 'Statistik'.tr),
           ],
         ),
       ),
@@ -73,7 +73,7 @@ class _HidingFab extends StatelessWidget {
             duration: duration,
             child: FloatingActionButton(
               heroTag: 'fab-tambah',
-              tooltip: 'Tambah transaksi',
+              tooltip: 'Tambah transaksi'.tr,
               onPressed: onPressed,
               child: const Icon(AppIcons.plus, size: 28),
             ),

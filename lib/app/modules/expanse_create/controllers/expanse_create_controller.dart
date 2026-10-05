@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:wister_lite/app/data/models/expense.dart';
 import 'package:wister_lite/app/data/models/category_model.dart';
 import 'package:wister_lite/app/data/repositories/expense_repository.dart';
+import 'package:wister_lite/app/data/services/settings_service.dart';
 import 'package:wister_lite/app/modules/main_nav/controllers/main_nav_controller.dart';
 import 'package:wister_lite/app/routes/app_pages.dart';
 import 'package:wister_lite/app/widgets/app_snackbar.dart';
@@ -47,25 +48,30 @@ class ExpanseCreateController extends GetxController {
   Timer? _closeFallback;
   VoidCallback? _afterClose;
 
-  /// Pesan validasi inline di bawah nominal / kategori.
+  /// Pesan validasi inline di bawah nominal / kategori (kunci terjemahan; `.tr` saat ditampilkan).
   final amountError = RxnString();
   final categoryError = RxnString();
 
   bool get isEditing => arg.value.isNotEmpty;
   bool get isIncome => transactionType.value == 'income';
 
-  String get title => '${isEditing ? 'Ubah' : 'Tambah'} ${isIncome ? 'Pemasukan' : 'Pengeluaran'}';
+  String get title => isEditing
+      ? (isIncome ? 'Ubah Pemasukan' : 'Ubah Pengeluaran').tr
+      : (isIncome ? 'Tambah Pemasukan' : 'Tambah Pengeluaran').tr;
 
-  String get dateLabel => DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(selectedDate.value);
+  String get dateLabel => DateFormat(SettingsService.intlTag == 'en_US' ? 'EEEE, MMMM d, yyyy' : 'EEEE, d MMMM yyyy', SettingsService.intlTag)
+      .format(selectedDate.value);
 
   /// Label ringkas untuk chip tanggal: "Hari ini", "Kemarin", atau "Sen, 21 Sep".
   String get dateShortLabel {
     final now = Clock.now();
     final d = selectedDate.value;
     final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
-    if (days == 0) return 'Hari ini';
-    if (days == 1) return 'Kemarin';
-    return DateFormat(d.year == now.year ? 'EEE, d MMM' : 'd MMM yyyy', 'id_ID').format(d);
+    if (days == 0) return 'Hari ini'.tr;
+    if (days == 1) return 'Kemarin'.tr;
+    final en = SettingsService.intlTag == 'en_US';
+    final pattern = d.year == now.year ? (en ? 'EEE, MMM d' : 'EEE, d MMM') : (en ? 'MMM d, yyyy' : 'd MMM yyyy');
+    return DateFormat(pattern, SettingsService.intlTag).format(d);
   }
 
   @override
@@ -182,7 +188,7 @@ class ExpanseCreateController extends GetxController {
 
   String get _name {
     final note = nameController.text.trim();
-    return note.isNotEmpty ? note : selectedCategory.value!.label;
+    return note.isNotEmpty ? note : selectedCategory.value!.storedLabel;
   }
 
   Future<void> save() => isEditing ? onUpdateSubmit() : submitForm();
@@ -202,11 +208,11 @@ class ExpanseCreateController extends GetxController {
       await repository.insertExpense(expense);
       log('Saving expense: ${expense.toDbMap()}');
 
-      final message = isIncome ? 'Pemasukan tersimpan' : 'Pengeluaran tersimpan';
+      final message = (isIncome ? 'Pemasukan tersimpan' : 'Pengeluaran tersimpan').tr;
       _celebrate(
         () => showAppSnackBar(
           message,
-          actionLabel: 'Urungkan',
+          actionLabel: 'Urungkan'.tr,
           onAction: () async {
             await repository.deleteExpense(expense.id!);
             MainNavController.refreshAll();
@@ -215,7 +221,7 @@ class ExpanseCreateController extends GetxController {
       );
     } catch (e) {
       log('Error saving expense: $e');
-      showAppSnackBar('Gagal menyimpan. Coba lagi, ya.');
+      showAppSnackBar('Gagal menyimpan. Coba lagi, ya.'.tr);
     } finally {
       isSaving.value = false;
     }
@@ -237,10 +243,10 @@ class ExpanseCreateController extends GetxController {
       await repository.updateExpense(updatedExpense);
       log('Updating expense: ${updatedExpense.toDbMap()}');
 
-      _celebrate(() => showAppSnackBar('Perubahan tersimpan'));
+      _celebrate(() => showAppSnackBar('Perubahan tersimpan'.tr));
     } catch (e) {
       log('Error updating expense: $e');
-      showAppSnackBar('Gagal menyimpan perubahan. Coba lagi, ya.');
+      showAppSnackBar('Gagal menyimpan perubahan. Coba lagi, ya.'.tr);
     } finally {
       isSaving.value = false;
     }
@@ -278,7 +284,7 @@ class ExpanseCreateController extends GetxController {
       final expense = await repository.getExpense(id);
       if (expense == null) {
         Get.back();
-        showAppSnackBar('Transaksi tidak ditemukan');
+        showAppSnackBar('Transaksi tidak ditemukan'.tr);
         return;
       }
 
@@ -290,11 +296,11 @@ class ExpanseCreateController extends GetxController {
       final cat = categories.firstWhereOrNull((c) => c.id == expense.type);
       if (cat != null) selectCategory(cat);
       // Catatan lama yang sama dengan nama kategori dianggap kosong.
-      nameController.text = expense.name == cat?.label ? '' : expense.name;
+      nameController.text = cat?.matchesLabel(expense.name) ?? false ? '' : expense.name;
     } catch (e) {
       log('Error loading expense: $e');
       Get.back();
-      showAppSnackBar('Gagal memuat transaksi');
+      showAppSnackBar('Gagal memuat transaksi'.tr);
     }
   }
 }

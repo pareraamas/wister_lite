@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:get/get.dart';
 
 import '../theme/app_theme.dart';
 import 'app_icons.dart';
@@ -53,8 +54,8 @@ class TransactionTile extends StatelessWidget {
       confirmDelete?.call() ??
       ConfirmDialog.show(
         context,
-        title: 'Hapus transaksi ini?',
-        message: 'Catatan "$title" akan dihapus permanen dan tidak bisa dikembalikan.',
+        title: 'Hapus transaksi ini?'.tr,
+        message: 'Catatan "@title" akan dihapus permanen dan tidak bisa dikembalikan.'.trParams({'title': title}),
       );
 
   @override
@@ -108,7 +109,7 @@ class TransactionTile extends StatelessWidget {
 
     return Semantics(
       customSemanticsActions: {
-        const CustomSemanticsAction(label: 'Hapus'): () async {
+        CustomSemanticsAction(label: 'Hapus'.tr): () async {
           if (await _confirm(context)) onDelete!();
         },
       },
@@ -126,9 +127,9 @@ class TransactionTile extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Hapus', style: t.labelLarge?.copyWith(color: c.onDangerContainer)),
+                  Text('Hapus'.tr, style: t.labelLarge?.copyWith(color: c.onDangerContainer)),
                   const SizedBox(width: AppSpacing.s8),
-                  Icon(AppIcons.trash, color: c.onDangerContainer, semanticLabel: 'Hapus'),
+                  Icon(AppIcons.trash, color: c.onDangerContainer, semanticLabel: 'Hapus'.tr),
                 ],
               ),
             ),

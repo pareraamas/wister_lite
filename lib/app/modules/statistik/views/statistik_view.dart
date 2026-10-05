@@ -8,6 +8,7 @@ import 'package:wister_lite/app/ui/ui.dart';
 import 'package:wister_lite/app/widgets/month_year_picker_sheet.dart';
 
 import '../controllers/statistik_controller.dart';
+import 'package:wister_lite/app/translations/tr_context.dart';
 
 class StatistikView extends GetView<StatistikController> {
   const StatistikView({super.key});
@@ -23,7 +24,7 @@ class StatistikView extends GetView<StatistikController> {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               PageAppBar(
-                title: 'Statistik',
+                title: 'Statistik'.tr,
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -31,7 +32,7 @@ class StatistikView extends GetView<StatistikController> {
                     Builder(
                       builder: (context) => IconButton(
                         icon: const Icon(AppIcons.dotsThreeVertical),
-                        tooltip: 'Export & bagikan',
+                        tooltip: 'Export & bagikan'.tr,
                         onPressed: () => _showExportSheet(context),
                       ),
                     ),
@@ -89,13 +90,13 @@ class StatistikView extends GetView<StatistikController> {
           children: [
             _Totals(controller: controller),
             const SizedBox(height: AppSpacing.section),
-            Semantics(header: true, child: Text('Pengeluaran per kategori', style: context.text.titleMedium)),
+            Semantics(header: true, child: Text('Pengeluaran per kategori'.tr, style: context.text.titleMedium)),
             const SizedBox(height: AppSpacing.s12),
             if (slices.isEmpty)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.card),
-                  child: Text('Belum ada pengeluaran bulan ini.', style: context.text.bodyMedium?.copyWith(color: context.colors.inkMuted)),
+                  child: Text('Belum ada pengeluaran bulan ini.'.tr, style: context.text.bodyMedium?.copyWith(color: context.colors.inkMuted)),
                 ),
               )
             else ...[
@@ -118,7 +119,7 @@ class StatistikView extends GetView<StatistikController> {
 void _showExportSheet(BuildContext anchor) {
   AppSheet.show<void>(
     anchor,
-    title: 'Export & bagikan',
+    title: 'Export & bagikan'.tr,
     child: _ExportSheet(origin: _originOf(anchor)),
   );
 }
@@ -165,28 +166,28 @@ class _ExportSheetState extends State<_ExportSheet> {
         children: [
           _option(
             AppIcons.image,
-            'Bagikan sebagai gambar',
-            'Kartu ringkasan ${AppFormat.monthYear(month)} untuk Story atau Feed',
+            'Bagikan sebagai gambar'.tr,
+            'Kartu ringkasan @month untuk Story atau Feed'.trParams({'month': AppFormat.monthYear(month)}),
             _controller.openShareCard,
           ),
           const Divider(height: AppSpacing.s24),
-          Semantics(header: true, child: Text('Export data', style: context.text.titleSmall)),
+          Semantics(header: true, child: Text('Export data'.tr, style: context.text.titleSmall)),
           const SizedBox(height: AppSpacing.s8),
           SegmentedButton<bool>(
             showSelectedIcon: false,
             segments: [
               ButtonSegment(value: false, label: Text(AppFormat.monthYearShort(month))),
-              const ButtonSegment(value: true, label: Text('Semua')),
+              ButtonSegment(value: true, label: Text('Semua'.trIn('period'))),
             ],
             selected: {_allTime},
             onSelectionChanged: (s) => setState(() => _allTime = s.first),
           ),
           const SizedBox(height: AppSpacing.s4),
-          _option(AppIcons.fileXls, 'Excel (.xlsx)', 'Sheet transaksi + ringkasan per kategori', () => _export(ExportFormat.excel)),
-          _option(AppIcons.filePdf, 'Laporan PDF', 'Siap dicetak atau dikirim', () => _export(ExportFormat.pdf)),
-          _option(AppIcons.fileCsv, 'CSV', 'Untuk Google Sheets atau aplikasi lain', () => _export(ExportFormat.csv)),
+          _option(AppIcons.fileXls, 'Excel (.xlsx)', 'Sheet transaksi + ringkasan per kategori'.tr, () => _export(ExportFormat.excel)),
+          _option(AppIcons.filePdf, 'Laporan PDF'.tr, 'Siap dicetak atau dikirim'.tr, () => _export(ExportFormat.pdf)),
+          _option(AppIcons.fileCsv, 'CSV', 'Untuk Google Sheets atau aplikasi lain'.tr, () => _export(ExportFormat.csv)),
           const Divider(height: AppSpacing.s24),
-          _option(AppIcons.downloadSimple, 'Import dari CSV / Excel', 'Formatnya sama dengan file hasil export', _controller.pickImportFile),
+          _option(AppIcons.downloadSimple, 'Import dari CSV / Excel'.tr, 'Formatnya sama dengan file hasil export'.tr, _controller.pickImportFile),
         ],
       ),
     );
@@ -226,11 +227,11 @@ class _Totals extends StatelessWidget {
     final balance = controller.balance;
     return Row(
       children: [
-        item('Masuk', controller.totalIncome.value, AmountKind.income),
+        item('Masuk'.tr, controller.totalIncome.value, AmountKind.income),
         const SizedBox(width: AppSpacing.s8),
-        item('Keluar', controller.totalExpense.value, AmountKind.expense),
+        item('Keluar'.tr, controller.totalExpense.value, AmountKind.expense),
         const SizedBox(width: AppSpacing.s8),
-        item('Selisih', balance, AmountKind.neutral, color: balance < 0 ? c.danger : null),
+        item('Selisih'.tr, balance, AmountKind.neutral, color: balance < 0 ? c.danger : null),
       ],
     );
   }
@@ -255,7 +256,7 @@ class _DonutState extends State<_Donut> {
   Widget build(BuildContext context) {
     final c = context.colors;
     final touched = _touched != null && _touched! < widget.slices.length ? widget.slices[_touched!] : null;
-    final centerLabel = touched?.label ?? 'Total keluar';
+    final centerLabel = touched?.label ?? 'Total keluar'.tr;
     final centerAmount = touched?.amount ?? widget.total;
 
     Widget chart(double grow) => PieChart(
@@ -283,7 +284,7 @@ class _DonutState extends State<_Donut> {
     );
 
     return Semantics(
-      label: 'Donut pengeluaran: ${[for (final s in widget.slices) '${s.label} ${AppFormat.rupiah(s.amount)}'].join(', ')}',
+      label: 'Donut pengeluaran: @items'.trParams({'items': [for (final s in widget.slices) '${s.label} ${AppFormat.rupiah(s.amount)}'].join(', ')}),
       excludeSemantics: true,
       child: SizedBox(
         height: 220,

@@ -7,6 +7,7 @@ import 'package:wister_lite/app/theme/app_theme.dart';
 import 'package:wister_lite/app/ui/ui.dart';
 
 import '../controllers/profile_controller.dart';
+import 'package:wister_lite/app/translations/tr_context.dart';
 
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({super.key});
@@ -14,7 +15,7 @@ class ProfileView extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
+      appBar: AppBar(title: Text('Profil'.tr)),
       body: Obx(() {
         final user = controller.auth.user.value;
         return ListView(
@@ -22,11 +23,11 @@ class ProfileView extends GetView<ProfileController> {
           children: [
             if (user == null) _GuestCard(busy: controller.isBusy.value, onSignIn: controller.signIn) else _AccountCard(user: user),
             const SizedBox(height: AppSpacing.section),
-            const _SectionTitle('Sinkronisasi'),
+            _SectionTitle('Sinkronisasi'.tr),
             const _SyncCard(),
             if (user != null) ...[
               const SizedBox(height: AppSpacing.section),
-              const _SectionTitle('Akun'),
+              _SectionTitle('Akun'.tr),
               Card(
                 clipBehavior: Clip.antiAlias,
                 child: Column(
@@ -34,8 +35,8 @@ class ProfileView extends GetView<ProfileController> {
                     ListTile(
                       enabled: !controller.isBusy.value,
                       leading: const Icon(AppIcons.signOut),
-                      title: const Text('Keluar'),
-                      subtitle: const Text('Data di HP ini ikut dihapus'),
+                      title: Text('Keluar'.trIn('auth')),
+                      subtitle: Text('Data di HP ini ikut dihapus'.tr),
                       onTap: () => _confirmSignOut(context),
                     ),
                     const Divider(height: 1),
@@ -44,8 +45,8 @@ class ProfileView extends GetView<ProfileController> {
                       iconColor: context.colors.danger,
                       textColor: context.colors.danger,
                       leading: const Icon(AppIcons.trash),
-                      title: const Text('Hapus akun'),
-                      subtitle: const Text('Hapus akun dan semua data di server'),
+                      title: Text('Hapus akun'.tr),
+                      subtitle: Text('Hapus akun dan semua data di server'.tr),
                       onTap: () => _confirmDeleteAccount(context),
                     ),
                   ],
@@ -61,16 +62,16 @@ class ProfileView extends GetView<ProfileController> {
   Future<void> _confirmSignOut(BuildContext context) async {
     final message = await controller.prepareSignOut();
     if (!context.mounted) return;
-    final ok = await ConfirmDialog.show(context, title: 'Keluar dari akun?', message: message, confirmLabel: 'Keluar');
+    final ok = await ConfirmDialog.show(context, title: 'Keluar dari akun?'.tr, message: message, confirmLabel: 'Keluar'.trIn('auth'));
     if (ok) await controller.signOut();
   }
 
   Future<void> _confirmDeleteAccount(BuildContext context) async {
     final ok = await ConfirmDialog.show(
       context,
-      title: 'Hapus akun?',
-      message: 'Akun dan semua data di server dihapus permanen, begitu juga data di HP ini. Tindakan ini tidak bisa dibatalkan.',
-      confirmLabel: 'Hapus akun',
+      title: 'Hapus akun?'.tr,
+      message: 'Akun dan semua data di server dihapus permanen, begitu juga data di HP ini. Tindakan ini tidak bisa dibatalkan.'.tr,
+      confirmLabel: 'Hapus akun'.tr,
     );
     if (ok) await controller.deleteAccount();
   }
@@ -110,13 +111,13 @@ class _GuestCard extends StatelessWidget {
             AppIllustration.dompi(DompiMood.senang, size: 96),
             const SizedBox(height: AppSpacing.s12),
             Text(
-              'Datamu cuma ada di HP ini',
+              'Datamu cuma ada di HP ini'.tr,
               textAlign: TextAlign.center,
               style: context.text.titleLarge?.copyWith(color: c.onBrandContainer),
             ),
             const SizedBox(height: AppSpacing.s4),
             Text(
-              'Masuk dengan Google untuk mencadangkan catatan ke server dan membukanya di HP lain.',
+              'Masuk dengan Google untuk mencadangkan catatan ke server dan membukanya di HP lain.'.tr,
               textAlign: TextAlign.center,
               style: context.text.bodySmall?.copyWith(color: c.onBrandContainer),
             ),
@@ -128,7 +129,7 @@ class _GuestCard extends StatelessWidget {
                 icon: busy
                     ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(AppIcons.googleLogo),
-                label: const Text('Masuk dengan Google'),
+                label: Text('Masuk dengan Google'.tr),
               ),
             ),
           ],
@@ -195,9 +196,11 @@ class _SyncCard extends GetView<ProfileController> {
               value: on,
               onChanged: controller.isBusy.value ? null : controller.toggleSync,
               secondary: Icon(AppIcons.cloudArrowUp, color: on ? c.brand : c.inkMuted),
-              title: const Text('Iklan & sinkronisasi'),
+              title: Text('Iklan & sinkronisasi'.tr),
               subtitle: Text(
-                'Tampilkan maksimal ${AdService.dailyLimit} iklan video sehari untuk mencadangkan data ke server secara otomatis.',
+                'Tampilkan iklan video paling cepat tiap @n jam untuk mencadangkan data ke server secara otomatis.'.trParams({
+                  'n': '${AdService.minGap.inHours}',
+                }),
               ),
             ),
             if (on) ...[
@@ -206,16 +209,19 @@ class _SyncCard extends GetView<ProfileController> {
               const Divider(height: 1),
               ListTile(
                 leading: Icon(AppIcons.playCircle, color: c.inkMuted),
-                title: const Text('Iklan hari ini'),
-                subtitle: const Text('Jatah kembali penuh setiap tengah malam'),
-                trailing: _AdQuota(shown: controller.ads.shownToday.value),
+                title: Text('Iklan hari ini'.tr),
+                subtitle: Text('Paling cepat tiap @n jam'.trParams({'n': '${AdService.minGap.inHours}'})),
+                trailing: Text(
+                  '${controller.ads.shownToday.value}',
+                  style: context.text.labelLarge?.copyWith(color: c.inkMuted),
+                ),
               ),
             ] else if (signedIn) ...[
               const Divider(height: 1),
               ListTile(
                 leading: Icon(AppIcons.cloudSlash, color: c.inkMuted),
-                title: const Text('Sinkronisasi mati'),
-                subtitle: const Text('Catatan baru hanya tersimpan di HP ini.'),
+                title: Text('Sinkronisasi mati'.tr),
+                subtitle: Text('Catatan baru hanya tersimpan di HP ini.'.tr),
               ),
             ],
           ],
@@ -236,14 +242,14 @@ class _SyncStatusTile extends GetView<ProfileController> {
       final state = sync.state.value;
       final pending = sync.pendingCount.value;
       final last = sync.lastSyncedAt.value;
-      final lastText = last == null ? 'Belum pernah disinkronkan' : 'Terakhir ${_relative(last)}';
+      final lastText = last == null ? 'Belum pernah disinkronkan'.tr : 'Terakhir @time'.trParams({'time': _relative(last)});
 
       final (IconData icon, Color color, String title, String subtitle) = switch (state) {
-        SyncState.syncing => (AppIcons.arrowsClockwise, c.brand, 'Menyinkronkan…', lastText),
-        SyncState.offline => (AppIcons.cloudSlash, c.warning, 'Tidak ada koneksi', 'Dicoba lagi saat ada perubahan berikutnya'),
-        SyncState.error => (AppIcons.cloudWarning, c.danger, 'Sinkronisasi gagal', sync.errorMessage.value ?? lastText),
-        SyncState.idle when pending > 0 => (AppIcons.cloudArrowUp, c.warning, '$pending perubahan menunggu', lastText),
-        SyncState.idle => (AppIcons.cloudCheck, c.income, last == null ? 'Siap disinkronkan' : 'Semua data tersinkron', lastText),
+        SyncState.syncing => (AppIcons.arrowsClockwise, c.brand, 'Menyinkronkan…'.tr, lastText),
+        SyncState.offline => (AppIcons.cloudSlash, c.warning, 'Tidak ada koneksi'.tr, 'Dicoba lagi saat ada perubahan berikutnya'.tr),
+        SyncState.error => (AppIcons.cloudWarning, c.danger, 'Sinkronisasi gagal'.tr, sync.errorMessage.value?.tr ?? lastText),
+        SyncState.idle when pending > 0 => (AppIcons.cloudArrowUp, c.warning, '@n perubahan menunggu'.trParams({'n': '$pending'}), lastText),
+        SyncState.idle => (AppIcons.cloudCheck, c.income, last == null ? 'Siap disinkronkan'.tr : 'Semua data tersinkron'.tr, lastText),
       };
 
       return ListTile(
@@ -252,47 +258,17 @@ class _SyncStatusTile extends GetView<ProfileController> {
         subtitle: Text(subtitle),
         trailing: state == SyncState.syncing
             ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
-            : TextButton(onPressed: controller.syncNow, child: const Text('Sinkronkan')),
+            : TextButton(onPressed: controller.syncNow, child: Text('Sinkronkan'.tr)),
       );
     });
   }
 
   static String _relative(DateTime time) {
     final diff = DateTime.now().difference(time);
-    if (diff.inMinutes < 1) return 'baru saja';
-    if (diff.inHours < 1) return '${diff.inMinutes} menit lalu';
-    if (diff.inDays < 1) return '${diff.inHours} jam lalu';
+    if (diff.inMinutes < 1) return 'baru saja'.tr;
+    if (diff.inHours < 1) return '@n menit lalu'.trParams({'n': '${diff.inMinutes}'});
+    if (diff.inDays < 1) return '@n jam lalu'.trParams({'n': '${diff.inHours}'});
     final hm = '${time.hour.toString().padLeft(2, '0')}.${time.minute.toString().padLeft(2, '0')}';
     return '${AppFormat.dayMonthShort(time)}, $hm';
-  }
-}
-
-/// Titik per jatah iklan: terisi = sudah tampil hari ini.
-class _AdQuota extends StatelessWidget {
-  const _AdQuota({required this.shown});
-
-  final int shown;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    return Semantics(
-      label: '$shown dari ${AdService.dailyLimit} iklan hari ini',
-      excludeSemantics: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < AdService.dailyLimit; i++)
-            Container(
-              width: 10,
-              height: 10,
-              margin: const EdgeInsets.only(left: AppSpacing.s4),
-              decoration: BoxDecoration(shape: BoxShape.circle, color: i < shown ? c.brand : c.outlineVariant),
-            ),
-          const SizedBox(width: AppSpacing.s8),
-          Text('$shown/${AdService.dailyLimit}', style: context.text.labelLarge?.copyWith(color: c.inkMuted)),
-        ],
-      ),
-    );
   }
 }
